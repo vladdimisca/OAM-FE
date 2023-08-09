@@ -33,21 +33,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     alignSelf: "center",
   },
-  fieldErrorText: {
-    marginHorizontal: 20,
-    color: colors.red,
-    fontSize: 15,
-    marginBottom: 17,
-  },
 });
 
 export default ({ navigation, route }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isReqLoading, setIsReqLoading] = useState(false);
   const [error, setError] = useState("");
-  const [fieldErrors, setFieldErrors] = useState(null);
 
   const [associationDetails, setAssociationDetails] = useState({
+    id: "",
     country: "",
     locality: "",
     administrativeArea: "",
@@ -56,21 +50,7 @@ export default ({ navigation, route }) => {
     number: "",
     block: "",
     staircase: "",
-    latitude: 0.0,
-    longitude: 0.0,
   });
-
-  const getFieldError = (fieldName) => {
-    if (fieldErrors === null) {
-      return null;
-    }
-    const errors = fieldErrors?.filter((fe) => fe.fieldName === fieldName);
-    return errors.length !== 0 ? errors[0].errorMessage : null;
-  };
-
-  const getFieldErrorStyle = (fieldName) => {
-    return getFieldError(fieldName) !== null ? styles.fieldErrorText : null;
-  };
 
   useEffect(() => {
     (async () => {
@@ -102,8 +82,6 @@ export default ({ navigation, route }) => {
       <SafeAreaView style={{ paddingBottom: 15 }}>
         <ScrollView>
           <Input
-            errorMessage={getFieldError("country")}
-            errorStyle={getFieldErrorStyle("country")}
             label="Country"
             containerStyle={{ marginTop: 20 }}
             labelStyle={styles.labelStyle}
@@ -118,8 +96,6 @@ export default ({ navigation, route }) => {
           />
 
           <Input
-            errorMessage={getFieldError("locality")}
-            errorStyle={getFieldErrorStyle("locality")}
             label="Locality"
             labelStyle={styles.labelStyle}
             inputContainerStyle={styles.inputContainerStyle}
@@ -133,8 +109,6 @@ export default ({ navigation, route }) => {
           />
 
           <Input
-            errorMessage={getFieldError("administrativeArea")}
-            errorStyle={getFieldErrorStyle("administrativeArea")}
             label="Administrative area"
             labelStyle={styles.labelStyle}
             inputContainerStyle={styles.inputContainerStyle}
@@ -148,8 +122,6 @@ export default ({ navigation, route }) => {
           />
 
           <Input
-            errorMessage={getFieldError("zipCode")}
-            errorStyle={getFieldErrorStyle("zipCode")}
             label="Zip code"
             keyboardType="numeric"
             labelStyle={styles.labelStyle}
@@ -164,8 +136,6 @@ export default ({ navigation, route }) => {
           />
 
           <Input
-            errorMessage={getFieldError("street")}
-            errorStyle={getFieldErrorStyle("street")}
             label="Street"
             labelStyle={styles.labelStyle}
             inputContainerStyle={styles.inputContainerStyle}
@@ -179,8 +149,6 @@ export default ({ navigation, route }) => {
           />
 
           <Input
-            errorMessage={getFieldError("number")}
-            errorStyle={getFieldErrorStyle("number")}
             label="Number"
             labelStyle={styles.labelStyle}
             inputContainerStyle={styles.inputContainerStyle}
@@ -194,8 +162,6 @@ export default ({ navigation, route }) => {
           />
 
           <Input
-            errorMessage={getFieldError("block")}
-            errorStyle={getFieldErrorStyle("block")}
             label="Block"
             labelStyle={styles.labelStyle}
             inputContainerStyle={styles.inputContainerStyle}
@@ -209,8 +175,6 @@ export default ({ navigation, route }) => {
           />
 
           <Input
-            errorMessage={getFieldError("staircase")}
-            errorStyle={getFieldErrorStyle("staircase")}
             label="Staircase"
             labelStyle={styles.labelStyle}
             inputContainerStyle={styles.inputContainerStyle}
@@ -234,10 +198,12 @@ export default ({ navigation, route }) => {
                 return;
               }
               setError("");
-              setFieldErrors(null);
               setIsReqLoading(true);
 
-              AssociationService.createAssociation(associationDetails)
+              AssociationService.updateAssociationById(
+                associationDetails.id,
+                associationDetails
+              )
                 .then(() => {
                   navigation.dispatch(
                     CommonActions.reset({
@@ -256,21 +222,12 @@ export default ({ navigation, route }) => {
                 })
                 .catch((err) => {
                   if (err?.response?.request?._response) {
-                    const errorMessages = JSON.parse(
-                      err.response.request._response
-                    ).errorMessages;
-                    if (errorMessages[0].fieldName !== null) {
-                      setFieldErrors(
-                        JSON.parse(err.response.request._response).errorMessages
-                      );
-                    } else {
-                      setError(
-                        `${
-                          JSON.parse(err.response.request._response)
-                            .errorMessages[0].errorMessage
-                        }`
-                      );
-                    }
+                    setError(
+                      `${
+                        JSON.parse(err.response.request._response)
+                          .errorMessages[0].errorMessage
+                      }`
+                    );
                   } else {
                     setError("Oops, something went wrong!");
                   }

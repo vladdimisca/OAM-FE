@@ -44,6 +44,7 @@ const styles = StyleSheet.create({
     maxWidth: "100%",
     flexDirection: "row",
     flex: 1,
+    marginTop: 5,
   },
   detailText: {
     flex: 1,
@@ -68,8 +69,8 @@ export const AssociationCard = ({
   association,
   onImagePress,
   onAssociationPress,
-  onSelect,
-  currentUser,
+  onApartmentsPress,
+  onMembersPress,
 }) => {
   const showMenu = true;
 
@@ -79,7 +80,7 @@ export const AssociationCard = ({
         <TouchableOpacity activeOpacity={0.7} onPress={onImagePress}>
           <Avatar
             activeOpacity={0.7}
-            size={screen.width * 0.14}
+            size={screen.width * 0.1}
             rounded
             source={require("../assets/images/pin.png")}
           />
@@ -97,18 +98,25 @@ export const AssociationCard = ({
             </MenuTrigger>
             <MenuOptions>
               <TouchableOpacity activeOpacity={0.7}>
-                <MenuOption onSelect={onSelect}>
-                  {
-                    <Text
-                      style={{
-                        ...styles.menuText,
-                        color: colors.lightBlue,
-                      }}
-                    >
-                      Send request
-                    </Text>
-                  }
-                  {<Text style={styles.menuText}>Delete</Text>}
+                <MenuOption onSelect={onMembersPress}>
+                  <Text
+                    style={{
+                      ...styles.menuText,
+                      color: colors.lightBlue,
+                    }}
+                  >
+                    Members
+                  </Text>
+                </MenuOption>
+                <MenuOption onSelect={onApartmentsPress}>
+                  <Text
+                    style={{
+                      ...styles.menuText,
+                      color: colors.green,
+                    }}
+                  >
+                    Apartments
+                  </Text>
                 </MenuOption>
               </TouchableOpacity>
             </MenuOptions>
@@ -129,13 +137,13 @@ export const AssociationCard = ({
 
         <View style={styles.detailContainer}>
           <Text style={styles.detailText}>
-            {association.street}, {association.number}
+            {association.street} street, {association.number}
           </Text>
         </View>
 
         <View style={styles.detailContainer}>
           <Text style={styles.detailText}>
-            Staircase {association.staircase}
+            Block {association.block}, staircase {association.staircase}
           </Text>
         </View>
       </TouchableOpacity>

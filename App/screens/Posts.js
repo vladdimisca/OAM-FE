@@ -7,6 +7,7 @@ import {
   Text,
   RefreshControl,
   TouchableOpacity,
+  LogBox,
 } from "react-native";
 import { DotIndicator } from "react-native-indicators";
 import Spinner from "react-native-loading-spinner-overlay";
@@ -19,12 +20,17 @@ import colors from "../constants/colors";
 import { UserStorage } from "../util/UserStorage";
 
 // services
-import { ApartmentService } from "../services/ApartmentService";
+import { PostService } from "../services/PostService";
 import { UserService } from "../services/UserService";
+import { AssociationService } from "../services/AssociationService";
 
 // components
 import { FocusAwareStatusBar } from "../components/FocusAwareStatusBar";
-import { ApartmentCard } from "../components/ApartmentCard";
+import { PostCard } from "../components/PostCard";
+import { CustomDropdown } from "../components/CustomDropdown";
+
+// ignored warnings
+LogBox.ignoreLogs(["new NativeEventEmitter"]);
 
 const styles = StyleSheet.create({
   container: {
@@ -36,28 +42,41 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     marginTop: 25,
   },
-  menuOption: {
-    alignSelf: "center",
-    fontSize: 14,
-    padding: 5,
+  dropdown: {
+    marginHorizontal: 25,
+    marginBottom: 20,
+    marginTop: 15,
   },
 });
 
-export default ({ navigation, route }) => {
+export default ({ navigation }) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [apartments, setApartments] = useState([]);
+  const [posts, setPosts] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
+  const [associations, setAssociations] = useState([]);
+  const [selectedAssociation, setSelectedAssociation] = useState(null);
 
-  const getApartments = useCallback(async (overlay = true) => {
+  const getPayments = useCallback(async (overlay = true) => {
     if (overlay) {
       setIsLoading(true);
     }
     const { userId } = await UserStorage.retrieveUserIdAndToken();
     await UserService.getUserById(userId).then((user) => setCurrentUser(user));
 
-    await ApartmentService.getApartments(route.params.association.id)
-      .then(setApartments)
+    await AssociationService.getAssociations().then((fetchedAssociations) =>
+      setAssociations(
+        fetchedAssociations.map((a) => {
+          return {
+            label: `Str. ${a.street}, no. ${a.number}, bl. ${a.block}, ${a.locality}, ${a.country}`,
+            value: a.id,
+          };
+        })
+      )
+    );
+
+    await PostService.getPosts()
+      .then(setPosts)
       .finally(() => setIsLoading(false));
   }, []);
 
@@ -67,9 +86,7 @@ export default ({ navigation, route }) => {
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={() => {
-            navigation.push("CreateApartment", {
-              association: route.params.association,
-            });
+            navigation.push("CreatePost");
           }}
         >
           <Feather
@@ -82,8 +99,8 @@ export default ({ navigation, route }) => {
       ),
     });
 
-    getApartments();
-  }, [navigation, getApartments, route]);
+    getPayments();
+  }, [navigation, getPayments]);
 
   return (
     <View style={styles.container}>
@@ -108,37 +125,54 @@ export default ({ navigation, route }) => {
               refreshing={isRefreshing}
               onRefresh={() => {
                 setIsRefreshing(true);
-                getApartments().finally(() => setIsRefreshing(false));
+                getPayments().finally(() => setIsRefreshing(false));
               }}
             />
           }
         >
-          {apartments.map((apartment) => {
+          <View style={styles.dropdown}>
+            <CustomDropdown
+              defaultButtonText={
+                selectedAssociation !== null
+                  ? associations.filter(
+                      (a) => a.value === selectedAssociation
+                    )[0]?.label
+                  : "Select the association..."
+              }
+              data={associations}
+              onSelect={(selectedItem) => {
+                setSelectedAssociation(selectedItem.value);
+              }}
+              buttonTextAfterSelection={(selectedItem) => selectedItem.label}
+              rowTextForSelection={(selectedItem) => selectedItem.label}
+            />
+          </View>
+
+          {posts.map((post) => {
             return (
-              <ApartmentCard
-                key={apartment.id}
-                apartment={apartment}
+              <PostCard
+                key={post.id}
+                post={post}
                 currentUser={currentUser}
-                onDetails={() => {
-                  navigation.push("ViewApartment", { apartment });
+                onPress={() => {
+                  navigation.push("ViewPost", { post });
                 }}
-                onMembers={() => {
-                  navigation.push("AssociationMembers", {
-                    apartment,
-                    association: apartment.association,
+                onProfilePicturePress={() => {
+                  navigation.push("Profile", {
+                    userId: post.user?.id,
                   });
                 }}
               />
             );
           })}
 
-          {apartments.length === 0 ? (
+          {posts.length === 0 && (
             <Text style={styles.emptyListText}>
-              There is no apartment created yet!
+              There is no post to display!
             </Text>
-          ) : (
-            <View style={{ marginBottom: 15 }} />
           )}
+
+          <View style={{ paddingBottom: 15 }} />
         </ScrollView>
       </SafeAreaView>
     </View>

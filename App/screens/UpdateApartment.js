@@ -45,17 +45,23 @@ export default ({ navigation, route }) => {
   const [error, setError] = useState("");
 
   const [apartmentDetails, setApartmentDetails] = useState({
-    association: null,
     number: "",
     numberOfPersons: "",
-    surface: 0.0,
+    surface: "",
   });
 
   useEffect(() => {
     (async () => {
       setIsLoading(true);
-      setApartmentDetails((state) => {
-        return { ...state, association: route.params.association };
+      setApartmentDetails(() => {
+        return {
+          ...route.params.apartment,
+          number: route.params.apartment.number,
+          numberOfPersons: JSON.stringify(
+            route.params.apartment.numberOfPersons
+          ),
+          surface: JSON.stringify(route.params.apartment.surface),
+        };
       });
       setIsLoading(false);
     })();
@@ -140,12 +146,20 @@ export default ({ navigation, route }) => {
                 ...apartmentDetails,
                 associationId: apartmentDetails.association.id,
               };
-              ApartmentService.createApartment(apartmentPayload)
+              ApartmentService.updateApartmentById(
+                apartmentPayload.id,
+                apartmentPayload
+              )
                 .then((apartment) => {
                   navigation.dispatch((state) => {
                     const newRoutes = [...state.routes];
                     if (
-                      newRoutes[newRoutes.length - 1].name === "CreateApartment"
+                      newRoutes[newRoutes.length - 1].name === "UpdateApartment"
+                    ) {
+                      newRoutes.splice(newRoutes.length - 1, 1);
+                    }
+                    if (
+                      newRoutes[newRoutes.length - 1].name === "ViewApartment"
                     ) {
                       newRoutes.splice(newRoutes.length - 1, 1);
                     }

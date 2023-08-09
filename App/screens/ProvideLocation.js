@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import MapView, { Marker } from "react-native-maps";
 import { View, StyleSheet, SafeAreaView } from "react-native";
 import * as Location from "expo-location";
+import { DotIndicator } from "react-native-indicators";
+import Spinner from "react-native-loading-spinner-overlay";
 
 // google autocomplete
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
@@ -62,14 +64,17 @@ export default ({ navigation }) => {
   Geocoder.init(config.GOOGLE_API_KEY, { language: "en" });
   navigator.geolocation = require("react-native-geolocation-service");
 
+  const [isLoading, setIsLoading] = useState(true);
+
   // refs
   const mapRef = useRef(null);
+  const markerRef = useRef(null);
   const locationRef = useRef(null);
 
   // states
   const [location, setLocation] = useState({
-    latitude: 0,
-    longitude: 0,
+    latitude: 0.0,
+    longitude: 0.0,
   });
   const [associationDetails, setAssociationDetails] = useState({
     country: "",
@@ -78,8 +83,6 @@ export default ({ navigation }) => {
     zipCode: "",
     street: "",
     number: "",
-    latitude: 0.0,
-    longitude: 0.0,
   });
 
   const fitToMarkers = () => {
@@ -133,6 +136,7 @@ export default ({ navigation }) => {
 
   useEffect(() => {
     (async () => {
+      setIsLoading(true);
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
         console.log("Permission to access location was denied");
@@ -151,14 +155,21 @@ export default ({ navigation }) => {
       }).then((json) => {
         locationRef.current?.setAddressText(json.results[0].formatted_address);
         extractAddressDetails(json.results[0].address_components);
+        fitToMarkers();
+        setIsLoading(false);
       });
-
-      fitToMarkers();
     })();
   }, [extractAddressDetails]);
 
   return (
     <View style={styles.container}>
+      <Spinner
+        overlayColor={colors.white}
+        customIndicator={
+          <DotIndicator color={colors.midBlue} count={3} size={12} />
+        }
+        visible={isLoading}
+      />
       <FocusAwareStatusBar
         barStyle="dark-content"
         backgroundColor={colors.white}
@@ -202,9 +213,10 @@ export default ({ navigation }) => {
           <Marker
             identifier="location_marker"
             draggable
+            ref={markerRef}
             coordinate={location}
-            title="Start"
-            description="Starting point"
+            title="Selected location"
+            description="This will be the location of your association"
             onDragEnd={async (event) => {
               const latitude = event.nativeEvent.coordinate.latitude;
               const longitude = event.nativeEvent.coordinate.longitude;
@@ -224,21 +236,26 @@ export default ({ navigation }) => {
         </MapView>
 
         <NextButton
-          active={location != null}
+          active={location.latitude !== 0.0 && location.longitude !== 0.0}
           onPress={() => {
             if (!location) {
               return;
             }
-            setAssociationDetails((details) => {
-              return {
-                ...details,
-                latitude: location.latitude,
-                longitude: location.longitude,
-              };
-            });
-            console.log(associationDetails);
+            const latitude =
+              location.latitude === 0.0
+                ? markerRef.current?.props.coordinate.latitude
+                : location.latitude;
+            const longitude =
+              location.longitude === 0.0
+                ? markerRef.current?.props.coordinate.longitude
+                : location.longitude;
+
             navigation.push("CreateAssociation", {
-              associationDetails,
+              associationDetails: {
+                ...associationDetails,
+                latitude,
+                longitude,
+              },
             });
           }}
           customStyle={styles.nextButton}

@@ -168,11 +168,7 @@ export default ({ navigation }) => {
     const { userId } = await UserStorage.retrieveUserIdAndToken();
 
     await UserService.updateProfilePictureById(userId, result.assets[0])
-      .then((response) => {
-        setUser((value) => {
-          return { ...value, base64Image: response.profilePictureURL };
-        });
-
+      .then(() => {
         redirectToProfile();
       })
       .finally(() => setIsLoading(false));

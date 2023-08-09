@@ -10,4 +10,6 @@ export default {
   text: "#1a1a1a",
   lightText: "#666666",
   offWhite: "#F0F0F0",
+  green: "#32a883",
+  red: "#DC3545",
 };

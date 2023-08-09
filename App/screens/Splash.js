@@ -42,7 +42,12 @@ export default ({ navigation }) => {
               {
                 name: "App",
                 state: {
-                  routes: [{ name: "Associations" }],
+                  routes: [
+                    {
+                      name: "My Profile",
+                      state: { routes: [{ name: "Profile" }] },
+                    },
+                  ],
                 },
               },
             ],

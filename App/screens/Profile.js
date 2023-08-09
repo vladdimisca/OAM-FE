@@ -8,12 +8,11 @@ import {
   Linking,
   RefreshControl,
 } from "react-native";
-import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
+import { ScrollView } from "react-native-gesture-handler";
 import { DotIndicator } from "react-native-indicators";
 import { Avatar } from "react-native-elements";
 import { Fontisto, Feather } from "react-native-vector-icons";
 import { CommonActions } from "@react-navigation/routers";
-import * as ImagePicker from "expo-image-picker";
 
 // constants
 import colors from "../constants/colors";
@@ -123,59 +122,6 @@ export default ({ navigation, route }) => {
     fetchData();
   }, [navigation, route, fetchData]);
 
-  const signOut = async () => {
-    UserStorage.clearStorage().then(() => {
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 0,
-          key: null,
-          routes: [
-            {
-              name: "Authentication",
-              state: {
-                routes: [{ name: "Login" }],
-              },
-            },
-          ],
-        })
-      );
-    });
-  };
-
-  const updateProfilePicture = async () => {
-    if (isProfileLoading) {
-      return;
-    }
-    setIsProfileLoading(true);
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      base64: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-
-    if (result.canceled) {
-      setIsProfileLoading(false);
-      return;
-    }
-
-    const { userId } = await UserStorage.retrieveUserIdAndToken();
-
-    await UserService.updateProfilePictureById(userId, result.base64)
-      .then((response) => {
-        setDisplayedUser((value) => {
-          return { ...value, profilePictureURL: response.profilePictureURL };
-        });
-      })
-      .finally(() => setIsProfileLoading(false));
-  };
-
-  const changePassword = () => {
-    navigation.push("ChangePassword");
-  };
-
   return (
     <View style={{ flex: 1 }}>
       <FocusAwareStatusBar
@@ -213,17 +159,7 @@ export default ({ navigation, route }) => {
                     : require("../assets/images/profile-placeholder.png")
                 }
                 containerStyle={styles.avatarContainer}
-              >
-                {currentUser.role === "ADMIN" &&
-                  currentUser.id === displayedUser.id && (
-                    <Avatar.Accessory
-                      size={30}
-                      style={{ backgroundColor: colors.border }}
-                      onPress={() => updateProfilePicture()}
-                      activeOpacity={0.7}
-                    />
-                  )}
-              </Avatar>
+              />
 
               <View style={styles.headerTextContainer}>
                 <Text style={styles.headerText}>
@@ -232,23 +168,19 @@ export default ({ navigation, route }) => {
               </View>
             </View>
 
-            {displayedUser.role !== "ADMIN" && (
-              <>
-                <ProfileItem
-                  leftIcon={
-                    // eslint-disable-next-line react/jsx-wrap-multilines
-                    <Feather
-                      name="message-circle"
-                      size={32}
-                      color={colors.darkBorder}
-                    />
-                  }
-                  text={displayedUser.description}
+            <ProfileItem
+              leftIcon={
+                // eslint-disable-next-line react/jsx-wrap-multilines
+                <Feather
+                  name="message-circle"
+                  size={32}
+                  color={colors.darkBorder}
                 />
+              }
+              text={displayedUser.description}
+            />
 
-                <ItemSeparator />
-              </>
-            )}
+            <ItemSeparator />
 
             <ProfileItem
               active={displayedUser.id !== currentUser.id}
@@ -290,28 +222,6 @@ export default ({ navigation, route }) => {
                   onPress={() => navigation.push("Settings")}
                   text="Settings"
                 />
-              )}
-
-            {currentUser.role === "ADMIN" &&
-              currentUser.id === displayedUser.id && (
-                <>
-                  <View style={{ marginTop: 10, marginBottom: 20 }}>
-                    <ItemSeparator />
-
-                    <TouchableOpacity onPress={signOut} activeOpacity={0.6}>
-                      <Text style={styles.actionText}>Sign out</Text>
-                    </TouchableOpacity>
-
-                    <ItemSeparator />
-
-                    <TouchableOpacity
-                      onPress={changePassword}
-                      activeOpacity={0.6}
-                    >
-                      <Text style={styles.actionText}>Change password</Text>
-                    </TouchableOpacity>
-                  </View>
-                </>
               )}
           </ScrollView>
         </SafeAreaView>

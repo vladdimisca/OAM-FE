@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export const ProfileItem = ({
+export const InvoiceItem = ({
   leftIcon,
   rightIcon,
   text,
@@ -41,11 +41,12 @@ export const ProfileItem = ({
           onPress={onPress}
           style={{
             ...styles.textStyle,
-            width: rightIcon ? screen.width * 0.6 : screen.width * 0.65,
+            width: rightIcon ? screen.width * 0.6 : screen.width * 0.75,
             color:
               customTextColor !== undefined
                 ? customTextColor
                 : styles.textStyle.color,
+            fontStyle: "italic",
           }}
         >
           {text}
@@ -55,8 +56,4 @@ export const ProfileItem = ({
       {rightIcon}
     </View>
   );
-};
-
-export const ItemSeparator = () => {
-  return <View style={styles.separator} />;
 };

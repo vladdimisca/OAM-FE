@@ -1,3 +1,5 @@
+/* eslint-disable react/jsx-one-expression-per-line */
+/* eslint-disable react/jsx-indent */
 /* eslint-disable react/jsx-wrap-multilines */
 import React, { useEffect, useState } from "react";
 import {
@@ -6,13 +8,13 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Dimensions,
+  TouchableOpacity,
   Alert,
 } from "react-native";
 import { DotIndicator } from "react-native-indicators";
 import Spinner from "react-native-loading-spinner-overlay";
-import { Avatar } from "react-native-elements";
 import { CommonActions } from "@react-navigation/native";
+import { Ionicons } from "react-native-vector-icons";
 
 // constants
 import colors from "../constants/colors";
@@ -26,10 +28,9 @@ import { GeneralButton } from "../components/GeneralButton";
 import { UserStorage } from "../util/UserStorage";
 
 // services
-import { AssociationService } from "../services/AssociationService";
+import { ApartmentService } from "../services/ApartmentService";
 import { UserService } from "../services/UserService";
 
-const screen = Dimensions.get("window");
 const styles = StyleSheet.create({
   addressText: {
     fontSize: 18,
@@ -39,18 +40,18 @@ const styles = StyleSheet.create({
 });
 
 export default ({ route, navigation }) => {
-  const [currentAssociation, setCurrentAssociation] = useState({});
+  const [currentApartment, setCurrentApartment] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
+  const [showCode, setShowCode] = useState(false);
 
   useEffect(() => {
     (async () => {
       setIsLoading(true);
       const { userId } = await UserStorage.retrieveUserIdAndToken();
       await UserService.getUserById(userId).then(setCurrentUser);
-
-      AssociationService.getAssociationById(route.params.associationId)
-        .then(setCurrentAssociation)
+      ApartmentService.getApartmentById(route.params.apartment.id)
+        .then(setCurrentApartment)
         .finally(() => setIsLoading(false));
     })();
   }, [route]);
@@ -71,86 +72,64 @@ export default ({ route, navigation }) => {
       <SafeAreaView>
         <ScrollView>
           <ProfileItem
-            leftIcon={
-              <Avatar
-                activeOpacity={0.7}
-                size={screen.width * 0.09}
-                rounded
-                source={require("../assets/images/pin.png")}
-              />
-            }
-            text="See on maps"
-            onPress={() =>
-              navigation.push("ShowLocation", {
-                location: {
-                  latitude: currentAssociation.latitude,
-                  longitude: currentAssociation.longitude,
-                },
-              })
-            }
-            active
-            customTextColor={colors.midBlue}
-          />
-
-          <ItemSeparator />
-
-          <ProfileItem
-            leftIcon={<Text style={styles.addressText}>Country:</Text>}
-            text={currentAssociation.country}
-          />
-
-          <ItemSeparator />
-
-          <ProfileItem
-            leftIcon={<Text style={styles.addressText}>Locality:</Text>}
-            text={currentAssociation.locality}
-          />
-
-          <ItemSeparator />
-
-          <ProfileItem
-            leftIcon={<Text style={styles.addressText}>Adm. area:</Text>}
-            text={currentAssociation.administrativeArea}
-          />
-
-          <ItemSeparator />
-
-          <ProfileItem
-            leftIcon={<Text style={styles.addressText}>Zip code:</Text>}
-            text={currentAssociation.zipCode}
-          />
-
-          <ItemSeparator />
-
-          <ProfileItem
-            leftIcon={<Text style={styles.addressText}>Street:</Text>}
-            text={currentAssociation.street}
-          />
-
-          <ItemSeparator />
-
-          <ProfileItem
             leftIcon={<Text style={styles.addressText}>Number:</Text>}
-            text={currentAssociation.number}
+            text={currentApartment.number}
           />
 
           <ItemSeparator />
 
           <ProfileItem
-            leftIcon={<Text style={styles.addressText}>Block:</Text>}
-            text={currentAssociation.block}
+            leftIcon={
+              <Text style={styles.addressText}>Number of persons:</Text>
+            }
+            text={currentApartment.numberOfPersons}
           />
 
           <ItemSeparator />
 
           <ProfileItem
-            leftIcon={<Text style={styles.addressText}>Staircase:</Text>}
-            text={currentAssociation.staircase}
+            leftIcon={
+              <Text style={{ ...styles.addressText, marginTop: 3 }}>
+                Surface:
+              </Text>
+            }
+            text={`${currentApartment.surface} ㎡`}
           />
 
           <ItemSeparator />
 
-          {currentAssociation.admins
+          <ProfileItem
+            leftIcon={<Text style={styles.addressText}>Code:</Text>}
+            text={
+              <View style={{ ...styles.detailText, flexDirection: "row" }}>
+                <Text style={{ fontSize: 18 }}>
+                  {showCode
+                    ? currentApartment?.code
+                    : currentApartment?.code?.replace(/./g, "*")}
+                </Text>
+                {(currentApartment.admins
+                  ?.map((user) => user.id)
+                  .includes(currentUser?.id) ||
+                  currentApartment.members
+                    ?.map((user) => user.id)
+                    .includes(currentUser?.id)) && (
+                  <TouchableOpacity
+                    style={{ marginLeft: 4, marginTop: showCode ? 2 : 0 }}
+                    onPress={() => setShowCode(!showCode)}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons
+                      name={showCode ? "eye-outline" : "eye-off-outline"}
+                      size={22}
+                      color={colors.lightText}
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
+            }
+          />
+
+          {currentApartment.admins
             ?.map((admin) => admin.id)
             .includes(currentUser?.id) && (
             <View
@@ -166,8 +145,8 @@ export default ({ route, navigation }) => {
                 <GeneralButton
                   text="Update"
                   onPress={() => {
-                    navigation.push("UpdateAssociation", {
-                      associationDetails: currentAssociation,
+                    navigation.push("UpdateApartment", {
+                      apartment: currentApartment,
                     });
                   }}
                 />
@@ -179,31 +158,44 @@ export default ({ route, navigation }) => {
                   backgroundColor={colors.red}
                   onPress={() => {
                     Alert.alert(
-                      "Do you really want to remove this association?",
+                      "Do you really want to remove this apartment?",
                       "This action is not reversible!",
                       [
                         {
                           text: "Delete",
                           onPress: async () => {
                             setIsLoading(true);
-                            AssociationService.deleteAssociationById(
-                              currentAssociation.id
+                            ApartmentService.deleteApartmentById(
+                              currentApartment.id
                             )
-                              .then(() => {
-                                navigation.dispatch(
-                                  CommonActions.reset({
-                                    index: 0,
-                                    key: null,
-                                    routes: [
-                                      {
-                                        name: "App",
-                                        state: {
-                                          routes: [{ name: "Associations" }],
-                                        },
-                                      },
-                                    ],
-                                  })
-                                );
+                              .then((apartment) => {
+                                navigation.dispatch((state) => {
+                                  const newRoutes = [...state.routes];
+                                  if (
+                                    newRoutes[newRoutes.length - 1].name ===
+                                    "ViewApartment"
+                                  ) {
+                                    newRoutes.splice(newRoutes.length - 1, 1);
+                                  }
+                                  if (
+                                    newRoutes[newRoutes.length - 1].name ===
+                                    "Apartments"
+                                  ) {
+                                    newRoutes.splice(newRoutes.length - 1, 1);
+                                  }
+                                  newRoutes.push({
+                                    name: "Apartments",
+                                    params: {
+                                      association: apartment.association,
+                                    },
+                                  });
+
+                                  return CommonActions.reset({
+                                    ...state,
+                                    routes: newRoutes,
+                                    index: newRoutes.length - 1,
+                                  });
+                                });
                               })
                               .catch((err) => {
                                 let alertMessage =
@@ -215,7 +207,7 @@ export default ({ route, navigation }) => {
                                   }`;
                                 }
                                 Alert.alert(
-                                  "Could not delete this association!",
+                                  "Could not delete this apartment!",
                                   alertMessage,
                                   [
                                     {

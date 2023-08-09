@@ -91,7 +91,12 @@ export default ({ navigation }) => {
               {
                 name: userId === "ADMIN" ? "Admin" : "App",
                 state: {
-                  routes: [{ name: "Profile" }],
+                  routes: [
+                    {
+                      name: "My Profile",
+                      state: { routes: [{ name: "Profile" }] },
+                    },
+                  ],
                 },
               },
             ],

@@ -6,18 +6,32 @@ const createApartment = async (data) => {
     .then((response) => response.data);
 };
 
-const getApartmentById = async (associationId) => {
+const updateApartmentById = async (apartmentId, data) => {
   return axiosInstance
-    .get(`/apartments/${associationId}`)
+    .put(`/apartments/${apartmentId}`, data)
     .then((response) => response.data);
 };
 
-const getApartments = async () => {
-  return axiosInstance.get(`/apartments`).then((response) => response.data);
+const getApartmentById = async (apartmentId) => {
+  return axiosInstance
+    .get(`/apartments/${apartmentId}`)
+    .then((response) => response.data);
+};
+
+const getApartments = async (associationId) => {
+  return axiosInstance
+    .get(`/apartments`, { params: { associationId } })
+    .then((response) => response.data);
+};
+
+const deleteApartmentById = async (apartmentId) => {
+  return axiosInstance.delete(`/apartments/${apartmentId}`);
 };
 
 export const ApartmentService = {
   createApartment,
+  updateApartmentById,
   getApartmentById,
   getApartments,
+  deleteApartmentById,
 };

@@ -1,3 +1,5 @@
+/* eslint-disable react/jsx-one-expression-per-line */
+/* eslint-disable react/jsx-indent */
 /* eslint-disable react/jsx-wrap-multilines */
 import React, { useEffect, useState } from "react";
 import {
@@ -6,13 +8,14 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Dimensions,
   Alert,
+  Dimensions,
 } from "react-native";
 import { DotIndicator } from "react-native-indicators";
 import Spinner from "react-native-loading-spinner-overlay";
-import { Avatar } from "react-native-elements";
 import { CommonActions } from "@react-navigation/native";
+import { Avatar } from "react-native-elements";
+import * as Linking from "expo-linking";
 
 // constants
 import colors from "../constants/colors";
@@ -26,10 +29,38 @@ import { GeneralButton } from "../components/GeneralButton";
 import { UserStorage } from "../util/UserStorage";
 
 // services
-import { AssociationService } from "../services/AssociationService";
+import { InvoiceService } from "../services/InvoiceService";
 import { UserService } from "../services/UserService";
 
 const screen = Dimensions.get("window");
+const methods = [
+  { value: "PER_COUNTER", label: "Per counter" },
+  { value: "PER_PERSON", label: "Per person" },
+  { value: "PER_APARTMENT", label: "Per apartment" },
+];
+const types = [
+  {
+    value: "NATURAL_GASES",
+    label: "Natural gases",
+  },
+  {
+    value: "ELECTRICITY",
+    label: "Electricity",
+  },
+  {
+    value: "COLD_WATER",
+    label: "Cold water",
+  },
+  {
+    value: "HOT_WATER",
+    label: "Hot water",
+  },
+  {
+    value: "OTHER",
+    label: "Other",
+  },
+];
+
 const styles = StyleSheet.create({
   addressText: {
     fontSize: 18,
@@ -39,18 +70,24 @@ const styles = StyleSheet.create({
 });
 
 export default ({ route, navigation }) => {
-  const [currentAssociation, setCurrentAssociation] = useState({});
+  const [currentInvoice, setCurrentInvoice] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
+
+  const getMonthName = (monthNumber) => {
+    const date = new Date();
+    date.setMonth(monthNumber - 1);
+
+    return date.toLocaleString("en-US", { month: "short" });
+  };
 
   useEffect(() => {
     (async () => {
       setIsLoading(true);
       const { userId } = await UserStorage.retrieveUserIdAndToken();
       await UserService.getUserById(userId).then(setCurrentUser);
-
-      AssociationService.getAssociationById(route.params.associationId)
-        .then(setCurrentAssociation)
+      InvoiceService.getInvoiceById(route.params.invoice.id)
+        .then(setCurrentInvoice)
         .finally(() => setIsLoading(false));
     })();
   }, [route]);
@@ -76,16 +113,18 @@ export default ({ route, navigation }) => {
                 activeOpacity={0.7}
                 size={screen.width * 0.09}
                 rounded
-                source={require("../assets/images/pin.png")}
+                source={require("../assets/images/pdf.png")}
               />
             }
-            text="See on maps"
+            text="Open invoice"
             onPress={() =>
-              navigation.push("ShowLocation", {
-                location: {
-                  latitude: currentAssociation.latitude,
-                  longitude: currentAssociation.longitude,
-                },
+              Linking.openURL(currentInvoice.documentUrl).catch(() => {
+                Alert.alert("Could not open this invoice!", "", [
+                  {
+                    text: "Ok",
+                    style: "cancel",
+                  },
+                ]);
               })
             }
             active
@@ -95,62 +134,80 @@ export default ({ route, navigation }) => {
           <ItemSeparator />
 
           <ProfileItem
-            leftIcon={<Text style={styles.addressText}>Country:</Text>}
-            text={currentAssociation.country}
-          />
-
-          <ItemSeparator />
-
-          <ProfileItem
-            leftIcon={<Text style={styles.addressText}>Locality:</Text>}
-            text={currentAssociation.locality}
-          />
-
-          <ItemSeparator />
-
-          <ProfileItem
-            leftIcon={<Text style={styles.addressText}>Adm. area:</Text>}
-            text={currentAssociation.administrativeArea}
-          />
-
-          <ItemSeparator />
-
-          <ProfileItem
-            leftIcon={<Text style={styles.addressText}>Zip code:</Text>}
-            text={currentAssociation.zipCode}
-          />
-
-          <ItemSeparator />
-
-          <ProfileItem
-            leftIcon={<Text style={styles.addressText}>Street:</Text>}
-            text={currentAssociation.street}
-          />
-
-          <ItemSeparator />
-
-          <ProfileItem
             leftIcon={<Text style={styles.addressText}>Number:</Text>}
-            text={currentAssociation.number}
+            text={currentInvoice.number}
           />
 
           <ItemSeparator />
 
           <ProfileItem
-            leftIcon={<Text style={styles.addressText}>Block:</Text>}
-            text={currentAssociation.block}
+            leftIcon={
+              <Text style={{ ...styles.addressText, marginTop: 3 }}>
+                Amount:
+              </Text>
+            }
+            text={`${currentInvoice.amount} €`}
           />
 
           <ItemSeparator />
 
           <ProfileItem
-            leftIcon={<Text style={styles.addressText}>Staircase:</Text>}
-            text={currentAssociation.staircase}
+            leftIcon={
+              <Text style={{ ...styles.addressText, marginTop: 3 }}>Type:</Text>
+            }
+            text={`${
+              types.filter((t) => t.value === currentInvoice?.type)[0]?.label
+            }`}
           />
 
           <ItemSeparator />
 
-          {currentAssociation.admins
+          <ProfileItem
+            leftIcon={
+              <Text style={{ ...styles.addressText, marginTop: 3 }}>
+                Method:
+              </Text>
+            }
+            text={`${
+              methods.filter((t) => t.value === currentInvoice?.method)[0]
+                ?.label
+            }`}
+          />
+
+          <ItemSeparator />
+
+          {currentInvoice.pricePerIndexUnit && (
+            <ProfileItem
+              leftIcon={
+                <Text style={{ ...styles.addressText, marginTop: 3 }}>
+                  Price per index unit:
+                </Text>
+              }
+              text={`${currentInvoice.pricePerIndexUnit} €`}
+            />
+          )}
+
+          <ItemSeparator />
+
+          <ProfileItem
+            leftIcon={<Text style={styles.addressText}>Date:</Text>}
+            text={`${getMonthName(currentInvoice.month)} ${
+              currentInvoice.year
+            }`}
+          />
+
+          <ItemSeparator />
+
+          <ProfileItem
+            leftIcon={
+              <Text style={{ ...styles.addressText, marginTop: 3 }}>
+                Association:
+              </Text>
+            }
+            text={`Str. ${currentInvoice.association?.street}, no. ${currentInvoice.association?.number}, bl. ${currentInvoice.association?.block}, ${currentInvoice.association?.locality}, ${currentInvoice.association?.country}`}
+          />
+
+          {currentInvoice?.association?.admins
             ?.map((admin) => admin.id)
             .includes(currentUser?.id) && (
             <View
@@ -162,33 +219,20 @@ export default ({ route, navigation }) => {
                 zIndex: 2,
               }}
             >
-              <View style={{ flex: 1, marginRight: -12 }}>
-                <GeneralButton
-                  text="Update"
-                  onPress={() => {
-                    navigation.push("UpdateAssociation", {
-                      associationDetails: currentAssociation,
-                    });
-                  }}
-                />
-              </View>
-
-              <View style={{ flex: 1, marginLeft: -12 }}>
+              <View style={{ flex: 1, marginHorizontal: 80 }}>
                 <GeneralButton
                   text="Delete"
                   backgroundColor={colors.red}
                   onPress={() => {
                     Alert.alert(
-                      "Do you really want to remove this association?",
+                      "Do you really want to remove this invoice?",
                       "This action is not reversible!",
                       [
                         {
                           text: "Delete",
                           onPress: async () => {
                             setIsLoading(true);
-                            AssociationService.deleteAssociationById(
-                              currentAssociation.id
-                            )
+                            InvoiceService.deleteInvoiceById(currentInvoice.id)
                               .then(() => {
                                 navigation.dispatch(
                                   CommonActions.reset({
@@ -198,7 +242,11 @@ export default ({ route, navigation }) => {
                                       {
                                         name: "App",
                                         state: {
-                                          routes: [{ name: "Associations" }],
+                                          routes: [
+                                            {
+                                              name: "Invoices",
+                                            },
+                                          ],
                                         },
                                       },
                                     ],
@@ -215,7 +263,7 @@ export default ({ route, navigation }) => {
                                   }`;
                                 }
                                 Alert.alert(
-                                  "Could not delete this association!",
+                                  "Could not delete this invoice!",
                                   alertMessage,
                                   [
                                     {

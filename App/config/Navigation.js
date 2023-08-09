@@ -4,7 +4,12 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { StyleSheet } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { FontAwesome5, Feather } from "react-native-vector-icons";
+import {
+  FontAwesome5,
+  Feather,
+  MaterialCommunityIcons,
+  MaterialIcons,
+} from "react-native-vector-icons";
 
 // constants
 import colors from "../constants/colors";
@@ -23,10 +28,28 @@ import DeleteAccount from "../screens/DeleteAccount";
 import ForgotPassword from "../screens/ForgotPassword";
 import Associations from "../screens/Associations";
 import ProvideLocation from "../screens/ProvideLocation";
+import ShowLocation from "../screens/ShowLocation";
 import CreateAssociation from "../screens/CreateAssociation";
+import UpdateAssociation from "../screens/UpdateAssociation";
 import ViewAssociation from "../screens/ViewAssociation";
+import JoinAssociation from "../screens/JoinAssociation";
 import Apartments from "../screens/Apartments";
 import CreateApartment from "../screens/CreateApartment";
+import UpdateApartment from "../screens/UpdateApartment";
+import Invoices from "../screens/Invoices";
+import CreateInvoice from "../screens/CreateInvoice";
+import ViewInvoice from "../screens/ViewInvoice";
+import Indexes from "../screens/Indexes";
+import CreateIndex from "../screens/CreateIndex";
+import Payments from "../screens/Payments";
+import CreatePayment from "../screens/CreatePayment";
+import ViewApartment from "../screens/ViewApartment";
+import ViewIndex from "../screens/ViewIndex";
+import AssociationMembers from "../screens/AssociationMembers";
+import ViewInvoiceDistribution from "../screens/ViewInvoiceDistribution";
+import ViewPayment from "../screens/ViewPayment";
+import Posts from "../screens/Posts";
+import ViewPost from "../screens/ViewPost";
 
 const emptyHeaderOptions = {
   title: null,
@@ -69,7 +92,7 @@ const AuthenticationStackScreen = () => (
       component={Login}
       options={emptyHeaderOptions}
     />
-    <ProfileStack.Screen
+    <AuthenticationStack.Screen
       name="ForgotPassword"
       component={ForgotPassword}
       options={emptyHeaderOptions}
@@ -128,9 +151,19 @@ const AssociationsStackScreen = () => (
       options={{ ...headerOptions, title: "Provide the location" }}
     />
     <AssociationsStack.Screen
+      name="ShowLocation"
+      component={ShowLocation}
+      options={{ ...headerOptions, title: "Association location" }}
+    />
+    <AssociationsStack.Screen
       name="CreateAssociation"
       component={CreateAssociation}
       options={{ ...headerOptions, title: "Create association" }}
+    />
+    <AssociationsStack.Screen
+      name="UpdateAssociation"
+      component={UpdateAssociation}
+      options={{ ...headerOptions, title: "Update association" }}
     />
     <AssociationsStack.Screen
       name="ViewAssociation"
@@ -138,16 +171,164 @@ const AssociationsStackScreen = () => (
       options={{ ...headerOptions, title: "Association details" }}
     />
     <AssociationsStack.Screen
+      name="JoinAssociation"
+      component={JoinAssociation}
+      options={{ ...headerOptions, title: "Join association" }}
+    />
+    <AssociationsStack.Screen
       name="Apartments"
       component={Apartments}
       options={{ ...headerOptions, title: "Apartments" }}
+    />
+    <AssociationsStack.Screen
+      name="ViewApartment"
+      component={ViewApartment}
+      options={{ ...headerOptions, title: "Apartment details" }}
     />
     <AssociationsStack.Screen
       name="CreateApartment"
       component={CreateApartment}
       options={{ ...headerOptions, title: "Create apartment" }}
     />
+    <AssociationsStack.Screen
+      name="UpdateApartment"
+      component={UpdateApartment}
+      options={{ ...headerOptions, title: "Update apartment" }}
+    />
+    <AssociationsStack.Screen
+      name="AssociationMembers"
+      component={AssociationMembers}
+      options={{ ...headerOptions, title: "Association members" }}
+    />
+    <AssociationsStack.Screen
+      name="Profile"
+      component={Profile}
+      options={{ headerShown: false }}
+    />
+    <AssociationsStack.Screen
+      name="Settings"
+      component={Settings}
+      options={headerOptions}
+    />
+    <AssociationsStack.Screen
+      name="ChangePassword"
+      component={ChangePassword}
+      options={emptyHeaderOptions}
+    />
+    <AssociationsStack.Screen
+      name="DeleteAccount"
+      component={DeleteAccount}
+      options={emptyHeaderOptions}
+    />
   </AssociationsStack.Navigator>
+);
+
+const InvoicesStack = createStackNavigator();
+const InvoicesStackScreen = () => (
+  <InvoicesStack.Navigator initialRouteName="MyInvoices">
+    <InvoicesStack.Screen
+      name="MyInvoices"
+      component={Invoices}
+      options={{ ...headerOptions, title: "Invoices" }}
+    />
+    <InvoicesStack.Screen
+      name="CreateInvoice"
+      component={CreateInvoice}
+      options={{ ...headerOptions, title: "Add invoice" }}
+    />
+    <InvoicesStack.Screen
+      name="ViewInvoice"
+      component={ViewInvoice}
+      options={{ ...headerOptions, title: "Invoice details" }}
+    />
+  </InvoicesStack.Navigator>
+);
+
+const IndexesStack = createStackNavigator();
+const IndexesStackScreen = () => (
+  <IndexesStack.Navigator initialRouteName="MyIndexes">
+    <IndexesStack.Screen
+      name="MyIndexes"
+      component={Indexes}
+      options={{ ...headerOptions, title: "Indexes" }}
+    />
+    <IndexesStack.Screen
+      name="CreateIndex"
+      component={CreateIndex}
+      options={{ ...headerOptions, title: "Add index" }}
+    />
+    <IndexesStack.Screen
+      name="ViewIndex"
+      component={ViewIndex}
+      options={{ ...headerOptions, title: "Index details" }}
+    />
+  </IndexesStack.Navigator>
+);
+
+const PaymentsStack = createStackNavigator();
+const PaymentsStackScreen = () => (
+  <PaymentsStack.Navigator initialRouteName="MyPayments">
+    <PaymentsStack.Screen
+      name="MyPayments"
+      component={Payments}
+      options={{ ...headerOptions, title: "Payments" }}
+    />
+    <PaymentsStack.Screen
+      name="CreatePayment"
+      component={CreatePayment}
+      options={{ ...headerOptions, title: "Make a new payment" }}
+    />
+    <PaymentsStack.Screen
+      name="ViewPayment"
+      component={ViewPayment}
+      options={{ ...headerOptions, title: "Payment details" }}
+    />
+    <PaymentsStack.Screen
+      name="ViewInvoiceDistribution"
+      component={ViewInvoiceDistribution}
+      options={{ ...headerOptions, title: "Invoice distribution details" }}
+    />
+    <PaymentsStack.Screen
+      name="Profile"
+      component={Profile}
+      options={{ headerShown: false }}
+    />
+    <PaymentsStack.Screen
+      name="Settings"
+      component={Settings}
+      options={headerOptions}
+    />
+    <PaymentsStack.Screen
+      name="ChangePassword"
+      component={ChangePassword}
+      options={emptyHeaderOptions}
+    />
+    <PaymentsStack.Screen
+      name="DeleteAccount"
+      component={DeleteAccount}
+      options={emptyHeaderOptions}
+    />
+  </PaymentsStack.Navigator>
+);
+
+const PostsStack = createStackNavigator();
+const PostsStackScreen = () => (
+  <PostsStack.Navigator initialRouteName="MyPosts">
+    <PostsStack.Screen
+      name="MyPosts"
+      component={Posts}
+      options={{ ...headerOptions, title: "Posts" }}
+    />
+    <PostsStack.Screen
+      name="ViewPost"
+      component={ViewPost}
+      options={{
+        ...headerOptions,
+        title: "Post details",
+        headerStyle: { backgroundColor: colors.offWhite },
+      }}
+    />
+  </PostsStack.Navigator>
 );
 
 const Tabs = createBottomTabNavigator();
@@ -161,6 +342,58 @@ const TabsScreen = () => {
           tabBarIcon: (props) => (
             <FontAwesome5
               name="house-user"
+              size={props.size}
+              color={props.color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="Indexes"
+        component={IndexesStackScreen}
+        options={{
+          tabBarIcon: (props) => (
+            <MaterialCommunityIcons
+              name="counter"
+              size={props.size}
+              color={props.color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="Invoices"
+        component={InvoicesStackScreen}
+        options={{
+          tabBarIcon: (props) => (
+            <FontAwesome5
+              name="file-invoice"
+              size={props.size}
+              color={props.color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="Payments"
+        component={PaymentsStackScreen}
+        options={{
+          tabBarIcon: (props) => (
+            <MaterialIcons
+              name="payment"
+              size={props.size}
+              color={props.color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="Posts"
+        component={PostsStackScreen}
+        options={{
+          tabBarIcon: (props) => (
+            <MaterialIcons
+              name="local-post-office"
               size={props.size}
               color={props.color}
             />

@@ -1,3 +1,5 @@
+/* eslint-disable react/jsx-one-expression-per-line */
+/* eslint-disable react/jsx-indent */
 /* eslint-disable react/jsx-wrap-multilines */
 import React, { useEffect, useState } from "react";
 import {
@@ -6,12 +8,10 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Dimensions,
   Alert,
 } from "react-native";
 import { DotIndicator } from "react-native-indicators";
 import Spinner from "react-native-loading-spinner-overlay";
-import { Avatar } from "react-native-elements";
 import { CommonActions } from "@react-navigation/native";
 
 // constants
@@ -26,10 +26,32 @@ import { GeneralButton } from "../components/GeneralButton";
 import { UserStorage } from "../util/UserStorage";
 
 // services
-import { AssociationService } from "../services/AssociationService";
+import { IndexService } from "../services/IndexService";
 import { UserService } from "../services/UserService";
 
-const screen = Dimensions.get("window");
+const types = [
+  {
+    value: "NATURAL_GASES",
+    label: "Natural gases",
+  },
+  {
+    value: "ELECTRICITY",
+    label: "Electricity",
+  },
+  {
+    value: "COLD_WATER",
+    label: "Cold water",
+  },
+  {
+    value: "HOT_WATER",
+    label: "Hot water",
+  },
+  {
+    value: "OTHER",
+    label: "Other",
+  },
+];
+
 const styles = StyleSheet.create({
   addressText: {
     fontSize: 18,
@@ -39,18 +61,24 @@ const styles = StyleSheet.create({
 });
 
 export default ({ route, navigation }) => {
-  const [currentAssociation, setCurrentAssociation] = useState({});
+  const [currentIndex, setCurrentIndex] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
+
+  const getMonthName = (monthNumber) => {
+    const date = new Date();
+    date.setMonth(monthNumber - 1);
+
+    return date.toLocaleString("en-US", { month: "short" });
+  };
 
   useEffect(() => {
     (async () => {
       setIsLoading(true);
       const { userId } = await UserStorage.retrieveUserIdAndToken();
       await UserService.getUserById(userId).then(setCurrentUser);
-
-      AssociationService.getAssociationById(route.params.associationId)
-        .then(setCurrentAssociation)
+      IndexService.getIndexById(route.params.index.id)
+        .then(setCurrentIndex)
         .finally(() => setIsLoading(false));
     })();
   }, [route]);
@@ -71,86 +99,54 @@ export default ({ route, navigation }) => {
       <SafeAreaView>
         <ScrollView>
           <ProfileItem
+            leftIcon={<Text style={styles.addressText}>Old index:</Text>}
+            text={currentIndex.oldIndex}
+          />
+
+          <ItemSeparator />
+
+          <ProfileItem
+            leftIcon={<Text style={styles.addressText}>New index:</Text>}
+            text={currentIndex.newIndex}
+          />
+
+          <ItemSeparator />
+
+          <ProfileItem
             leftIcon={
-              <Avatar
-                activeOpacity={0.7}
-                size={screen.width * 0.09}
-                rounded
-                source={require("../assets/images/pin.png")}
-              />
+              <Text style={{ ...styles.addressText, marginTop: 3 }}>Type:</Text>
             }
-            text="See on maps"
-            onPress={() =>
-              navigation.push("ShowLocation", {
-                location: {
-                  latitude: currentAssociation.latitude,
-                  longitude: currentAssociation.longitude,
-                },
-              })
+            text={`${
+              types.filter((t) => t.value === currentIndex?.type)[0]?.label
+            }`}
+          />
+
+          <ItemSeparator />
+
+          <ProfileItem
+            leftIcon={<Text style={styles.addressText}>Date:</Text>}
+            text={`${getMonthName(currentIndex.month)} ${currentIndex.year}`}
+          />
+
+          <ItemSeparator />
+
+          <ProfileItem
+            leftIcon={<Text style={styles.addressText}>Apartment number:</Text>}
+            text={currentIndex.apartment?.number}
+          />
+
+          <ItemSeparator />
+
+          <ProfileItem
+            leftIcon={
+              <Text style={{ ...styles.addressText, marginTop: 3 }}>
+                Association:
+              </Text>
             }
-            active
-            customTextColor={colors.midBlue}
+            text={`Str. ${currentIndex.apartment?.association?.street}, no. ${currentIndex.apartment?.association?.number}, bl. ${currentIndex.apartment?.association?.block}, ${currentIndex.apartment?.association?.locality}, ${currentIndex.apartment?.association?.country}`}
           />
 
-          <ItemSeparator />
-
-          <ProfileItem
-            leftIcon={<Text style={styles.addressText}>Country:</Text>}
-            text={currentAssociation.country}
-          />
-
-          <ItemSeparator />
-
-          <ProfileItem
-            leftIcon={<Text style={styles.addressText}>Locality:</Text>}
-            text={currentAssociation.locality}
-          />
-
-          <ItemSeparator />
-
-          <ProfileItem
-            leftIcon={<Text style={styles.addressText}>Adm. area:</Text>}
-            text={currentAssociation.administrativeArea}
-          />
-
-          <ItemSeparator />
-
-          <ProfileItem
-            leftIcon={<Text style={styles.addressText}>Zip code:</Text>}
-            text={currentAssociation.zipCode}
-          />
-
-          <ItemSeparator />
-
-          <ProfileItem
-            leftIcon={<Text style={styles.addressText}>Street:</Text>}
-            text={currentAssociation.street}
-          />
-
-          <ItemSeparator />
-
-          <ProfileItem
-            leftIcon={<Text style={styles.addressText}>Number:</Text>}
-            text={currentAssociation.number}
-          />
-
-          <ItemSeparator />
-
-          <ProfileItem
-            leftIcon={<Text style={styles.addressText}>Block:</Text>}
-            text={currentAssociation.block}
-          />
-
-          <ItemSeparator />
-
-          <ProfileItem
-            leftIcon={<Text style={styles.addressText}>Staircase:</Text>}
-            text={currentAssociation.staircase}
-          />
-
-          <ItemSeparator />
-
-          {currentAssociation.admins
+          {currentIndex?.apartment?.association?.admins
             ?.map((admin) => admin.id)
             .includes(currentUser?.id) && (
             <View
@@ -162,33 +158,20 @@ export default ({ route, navigation }) => {
                 zIndex: 2,
               }}
             >
-              <View style={{ flex: 1, marginRight: -12 }}>
-                <GeneralButton
-                  text="Update"
-                  onPress={() => {
-                    navigation.push("UpdateAssociation", {
-                      associationDetails: currentAssociation,
-                    });
-                  }}
-                />
-              </View>
-
-              <View style={{ flex: 1, marginLeft: -12 }}>
+              <View style={{ flex: 1, marginHorizontal: 80 }}>
                 <GeneralButton
                   text="Delete"
                   backgroundColor={colors.red}
                   onPress={() => {
                     Alert.alert(
-                      "Do you really want to remove this association?",
+                      "Do you really want to remove this index?",
                       "This action is not reversible!",
                       [
                         {
                           text: "Delete",
                           onPress: async () => {
                             setIsLoading(true);
-                            AssociationService.deleteAssociationById(
-                              currentAssociation.id
-                            )
+                            IndexService.deleteIndexById(currentIndex.id)
                               .then(() => {
                                 navigation.dispatch(
                                   CommonActions.reset({
@@ -198,7 +181,11 @@ export default ({ route, navigation }) => {
                                       {
                                         name: "App",
                                         state: {
-                                          routes: [{ name: "Associations" }],
+                                          routes: [
+                                            {
+                                              name: "Indexes",
+                                            },
+                                          ],
                                         },
                                       },
                                     ],
@@ -215,7 +202,7 @@ export default ({ route, navigation }) => {
                                   }`;
                                 }
                                 Alert.alert(
-                                  "Could not delete this association!",
+                                  "Could not delete this index!",
                                   alertMessage,
                                   [
                                     {

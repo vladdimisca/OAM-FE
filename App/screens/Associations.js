@@ -5,7 +5,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  Alert,
   RefreshControl,
   TouchableOpacity,
 } from "react-native";
@@ -22,12 +21,8 @@ import {
 // constants
 import colors from "../constants/colors";
 
-// storage
-import { UserStorage } from "../util/UserStorage";
-
 // services
 import { AssociationService } from "../services/AssociationService";
-import { UserService } from "../services/UserService";
 
 // components
 import { FocusAwareStatusBar } from "../components/FocusAwareStatusBar";
@@ -55,16 +50,14 @@ export default ({ navigation }) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [associations, setAssociations] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
+  const [associationRole, setAssociationRole] = useState("ADMIN");
 
-  const getAssociations = useCallback(async (overlay = true) => {
+  const getAssociations = useCallback(async (role, overlay = true) => {
     if (overlay) {
       setIsLoading(true);
     }
-    const { userId } = await UserStorage.retrieveUserIdAndToken();
-    await UserService.getUserById(userId).then((user) => setCurrentUser(user));
 
-    await AssociationService.getAssociations()
+    await AssociationService.getAssociations(role)
       .then(setAssociations)
       .finally(() => setIsLoading(false));
   }, []);
@@ -95,11 +88,11 @@ export default ({ navigation }) => {
               </MenuOption>
             </TouchableOpacity>
             <TouchableOpacity activeOpacity={0.7}>
-              <MenuOption>
+              <MenuOption onSelect={() => navigation.push("JoinAssociation")}>
                 <Text
                   style={{
                     ...styles.menuOption,
-                    color: "#32a883",
+                    color: colors.green,
                   }}
                 >
                   Join using code
@@ -111,7 +104,7 @@ export default ({ navigation }) => {
       ),
     });
 
-    getAssociations();
+    getAssociations("ADMIN");
   }, [navigation, getAssociations]);
 
   return (
@@ -145,11 +138,33 @@ export default ({ navigation }) => {
           }}
         >
           <View style={{ flex: 1, marginRight: -12 }}>
-            <GeneralButton text="As admin" />
+            <GeneralButton
+              text="As admin"
+              isActive={associationRole === "ADMIN"}
+              onPress={async () => {
+                if (associationRole === "ADMIN") {
+                  return;
+                }
+
+                setAssociationRole("ADMIN");
+                getAssociations("ADMIN");
+              }}
+            />
           </View>
 
           <View style={{ flex: 1, marginLeft: -12 }}>
-            <GeneralButton text="As member" />
+            <GeneralButton
+              text="As member"
+              isActive={associationRole === "MEMBER"}
+              onPress={async () => {
+                if (associationRole === "MEMBER") {
+                  return;
+                }
+
+                setAssociationRole("MEMBER");
+                getAssociations("MEMBER");
+              }}
+            />
           </View>
         </View>
 
@@ -160,7 +175,9 @@ export default ({ navigation }) => {
               refreshing={isRefreshing}
               onRefresh={() => {
                 setIsRefreshing(true);
-                getAssociations().finally(() => setIsRefreshing(false));
+                getAssociations(associationRole).finally(() =>
+                  setIsRefreshing(false)
+                );
               }}
             />
           }
@@ -171,63 +188,35 @@ export default ({ navigation }) => {
               <AssociationCard
                 key={association.id}
                 association={association}
-                currentUser={currentUser}
                 onImagePress={() =>
-                  navigation.push("Profile", { userId: association.user.id })
+                  navigation.push("ShowLocation", {
+                    location: {
+                      latitude: association.latitude,
+                      longitude: association.longitude,
+                    },
+                  })
                 }
                 onAssociationPress={() => {
-                  navigation.push("ViewAssociation", { association });
+                  navigation.push("ViewAssociation", {
+                    associationId: association.id,
+                  });
                 }}
-                onSelect={() => {
-                  Alert.alert(
-                    "Do you really want to remove this association?",
-                    "This action is not reversible!",
-                    [
-                      {
-                        text: "Delete",
-                        onPress: async () => {
-                          //   setIsLoading(true);
-                          //   RouteService.deleteRouteById(route.id)
-                          //     .then(() => {
-                          //       setRoutes(routes.filter((r) => r !== route));
-                          //     })
-                          //     .catch((err) => {
-                          //       let alertMessage = "Oops, something went wrong!";
-                          //       if (err?.response?.request?._response) {
-                          //         alertMessage = `${
-                          //           JSON.parse(err.response.request._response)
-                          //             .errorMessage
-                          //         }`;
-                          //       }
-                          //       Alert.alert(
-                          //         "Could not delete this route!",
-                          //         alertMessage,
-                          //         [
-                          //           {
-                          //             text: "Ok",
-                          //             style: "cancel",
-                          //           },
-                          //         ]
-                          //       );
-                          //     })
-                          //     .finally(() => setIsLoading(false));
-                        },
-                      },
-                      {
-                        text: "Cancel",
-                        style: "cancel",
-                      },
-                    ]
-                  );
-                }}
+                onApartmentsPress={() =>
+                  navigation.push("Apartments", { association })
+                }
+                onMembersPress={() =>
+                  navigation.push("AssociationMembers", { association })
+                }
               />
             );
           })}
 
-          {associations.length === 0 && (
+          {associations.length === 0 ? (
             <Text style={styles.emptyListText}>
               You are not part of any association yet!
             </Text>
+          ) : (
+            <View style={{ marginBottom: 15 }} />
           )}
 
           <View style={{ paddingBottom: 15 }} />
