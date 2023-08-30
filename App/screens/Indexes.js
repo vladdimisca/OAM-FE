@@ -241,6 +241,11 @@ export default ({ navigation }) => {
                       index={index}
                       currentUser={currentUser}
                       onSelect={() => navigation.push("ViewIndex", { index })}
+                      onProfilePicturePress={() =>
+                        navigation.push("Profile", {
+                          userId: index.user?.id,
+                        })
+                      }
                     />
                   );
                 })}

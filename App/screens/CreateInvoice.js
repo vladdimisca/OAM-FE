@@ -102,7 +102,7 @@ export default ({ navigation }) => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isReqLoading, setIsReqLoading] = useState(false);
-  const [error, setError] = useState();
+  const [error, setError] = useState("");
 
   const [associations, setAssociations] = useState([]);
   const [invoice, setInvoice] = useState(null);
@@ -246,7 +246,7 @@ export default ({ navigation }) => {
               />
 
               <Input
-                label="Amount"
+                label="Amount (€)"
                 labelStyle={styles.labelStyle}
                 keyboardType="numeric"
                 inputContainerStyle={styles.inputContainerStyle}

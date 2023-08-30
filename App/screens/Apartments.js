@@ -7,6 +7,7 @@ import {
   Text,
   RefreshControl,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { DotIndicator } from "react-native-indicators";
 import Spinner from "react-native-loading-spinner-overlay";
@@ -127,6 +128,61 @@ export default ({ navigation, route }) => {
                     apartment,
                     association: apartment.association,
                   });
+                }}
+                onLeave={async () => {
+                  Alert.alert(
+                    "Do you really want to leave this apartment?",
+                    "This action is not reversible!",
+                    [
+                      {
+                        text: "Leave",
+                        onPress: async () => {
+                          setIsLoading(true);
+                          ApartmentService.leaveApartmentById(apartment.id)
+                            .then(() => {
+                              setApartments(
+                                apartments.map((ap) => {
+                                  if (ap.id === apartment.id) {
+                                    const updatedApartment = { ...ap };
+                                    updatedApartment.members =
+                                      apartment.members.filter(
+                                        (member) =>
+                                          member.id !== currentUser?.id
+                                      );
+                                    return updatedApartment;
+                                  }
+                                  return ap;
+                                })
+                              );
+                            })
+                            .catch((err) => {
+                              let alertMessage = "Oops, something went wrong!";
+                              if (err?.response?.request?._response) {
+                                alertMessage = `${
+                                  JSON.parse(err.response.request._response)
+                                    .errorMessages[0].errorMessage
+                                }`;
+                              }
+                              Alert.alert(
+                                "Could not leave this apartment!",
+                                alertMessage,
+                                [
+                                  {
+                                    text: "Ok",
+                                    style: "cancel",
+                                  },
+                                ]
+                              );
+                            })
+                            .finally(() => setIsLoading(false));
+                        },
+                      },
+                      {
+                        text: "Cancel",
+                        style: "cancel",
+                      },
+                    ]
+                  );
                 }}
               />
             );

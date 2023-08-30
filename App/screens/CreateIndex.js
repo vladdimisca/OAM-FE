@@ -61,6 +61,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 25,
     marginBottom: 20,
   },
+  fieldErrorText: {
+    marginHorizontal: 20,
+    color: colors.red,
+    fontSize: 15,
+    marginBottom: 17,
+  },
 });
 
 export default ({ navigation }) => {
@@ -89,7 +95,8 @@ export default ({ navigation }) => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isReqLoading, setIsReqLoading] = useState(false);
-  const [error, setError] = useState();
+  const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState(null);
 
   const [apartments, setApartments] = useState([]);
   const [isDatePickerActive, setIsDatePickerActive] = useState(false);
@@ -102,6 +109,18 @@ export default ({ navigation }) => {
     type: null,
     apartmentId: null,
   });
+
+  const getFieldError = (fieldName) => {
+    if (fieldErrors === null) {
+      return null;
+    }
+    const errors = fieldErrors?.filter((fe) => fe.fieldName === fieldName);
+    return errors.length !== 0 ? errors[0].errorMessage : null;
+  };
+
+  const getFieldErrorStyle = (fieldName) => {
+    return getFieldError(fieldName) !== null ? styles.fieldErrorText : null;
+  };
 
   useEffect(() => {
     (() => {
@@ -181,6 +200,8 @@ export default ({ navigation }) => {
           {!isDatePickerActive && (
             <>
               <Input
+                errorMessage={getFieldError("oldIndex")}
+                errorStyle={getFieldErrorStyle("oldIndex")}
                 label="Old index"
                 keyboardType="numeric"
                 labelStyle={styles.labelStyle}
@@ -195,6 +216,8 @@ export default ({ navigation }) => {
               />
 
               <Input
+                errorMessage={getFieldError("newIndex")}
+                errorStyle={getFieldErrorStyle("newIndex")}
                 label="New index"
                 labelStyle={styles.labelStyle}
                 keyboardType="numeric"
@@ -229,6 +252,17 @@ export default ({ navigation }) => {
                   }
                   rowTextForSelection={(selectedItem) => selectedItem.label}
                 />
+
+                {getFieldError("apartmentId") !== null && (
+                  <Text
+                    style={{
+                      ...getFieldErrorStyle("apartmentId"),
+                      marginLeft: 5,
+                    }}
+                  >
+                    {getFieldError("apartmentId")}
+                  </Text>
+                )}
               </View>
 
               <View style={styles.dropdown}>
@@ -251,6 +285,18 @@ export default ({ navigation }) => {
                   }
                   rowTextForSelection={(selectedItem) => selectedItem.label}
                 />
+
+                {getFieldError("type") !== null && (
+                  <Text
+                    style={{
+                      ...getFieldErrorStyle("type"),
+                      marginLeft: 5,
+                      marginBottom: -10,
+                    }}
+                  >
+                    {getFieldError("type")}
+                  </Text>
+                )}
               </View>
 
               <ProfileItem
@@ -286,6 +332,7 @@ export default ({ navigation }) => {
                     return;
                   }
                   setError("");
+                  setFieldErrors(null);
                   setIsReqLoading(true);
 
                   const indexPayload = {
@@ -313,18 +360,27 @@ export default ({ navigation }) => {
                     })
                     .catch((err) => {
                       if (err?.response?.request?._response) {
-                        setError(
-                          `${
+                        const errorMessages = JSON.parse(
+                          err.response.request._response
+                        ).errorMessages;
+                        if (errorMessages[0].fieldName !== null) {
+                          setFieldErrors(
                             JSON.parse(err.response.request._response)
-                              .errorMessages[0].errorMessage
-                          }`
-                        );
+                              .errorMessages
+                          );
+                        } else {
+                          setError(
+                            `${
+                              JSON.parse(err.response.request._response)
+                                .errorMessages[0].errorMessage
+                            }`
+                          );
+                        }
                       } else {
                         setError("Oops, something went wrong!");
                       }
                     })
                     .finally(() => setIsReqLoading(false));
-                  setIsReqLoading(false);
                 }}
               />
             </>

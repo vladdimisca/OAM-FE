@@ -56,6 +56,7 @@ export default ({ navigation, route }) => {
     number: "",
     block: "",
     staircase: "",
+    iban: "",
     latitude: 0.0,
     longitude: 0.0,
   });
@@ -219,6 +220,21 @@ export default ({ navigation, route }) => {
             onChangeText={(staircase) =>
               setAssociationDetails((value) => {
                 return { ...value, staircase };
+              })
+            }
+          />
+
+          <Input
+            errorMessage={getFieldError("iban")}
+            errorStyle={getFieldErrorStyle("iban")}
+            label="Iban"
+            labelStyle={styles.labelStyle}
+            inputContainerStyle={styles.inputContainerStyle}
+            leftIconContainerStyle={styles.leftIconContainerStyle}
+            value={associationDetails.iban}
+            onChangeText={(iban) =>
+              setAssociationDetails((value) => {
+                return { ...value, iban };
               })
             }
           />

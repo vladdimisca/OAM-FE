@@ -32,6 +32,20 @@ const joinAssociation = async (code) => {
   return axiosInstance.post(`/associations/join`, "", { params: { code } });
 };
 
+const removeMemberFromAssociation = async (userId, associationId) => {
+  return axiosInstance.post(
+    `/associations/${associationId}/removeMember/${userId}`,
+    ""
+  );
+};
+
+const addAdminMemberToAssociation = async (email, associationId) => {
+  return axiosInstance.post(
+    `/associations/${associationId}/addAdmin/${email}`,
+    ""
+  );
+};
+
 export const AssociationService = {
   createAssociation,
   updateAssociationById,
@@ -39,4 +53,6 @@ export const AssociationService = {
   getAssociations,
   deleteAssociationById,
   joinAssociation,
+  removeMemberFromAssociation,
+  addAdminMemberToAssociation,
 };

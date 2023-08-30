@@ -28,10 +28,15 @@ const deleteApartmentById = async (apartmentId) => {
   return axiosInstance.delete(`/apartments/${apartmentId}`);
 };
 
+const leaveApartmentById = async (apartmentId) => {
+  return axiosInstance.post(`/apartments/${apartmentId}/leave`);
+};
+
 export const ApartmentService = {
   createApartment,
   updateApartmentById,
   getApartmentById,
   getApartments,
   deleteApartmentById,
+  leaveApartmentById,
 };

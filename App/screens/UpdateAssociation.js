@@ -187,6 +187,19 @@ export default ({ navigation, route }) => {
             }
           />
 
+          <Input
+            label="Iban"
+            labelStyle={styles.labelStyle}
+            inputContainerStyle={styles.inputContainerStyle}
+            leftIconContainerStyle={styles.leftIconContainerStyle}
+            value={associationDetails.iban}
+            onChangeText={(iban) =>
+              setAssociationDetails((value) => {
+                return { ...value, iban };
+              })
+            }
+          />
+
           {isReqLoading === false && error !== "" && (
             <Text style={styles.errorText}>{error}</Text>
           )}

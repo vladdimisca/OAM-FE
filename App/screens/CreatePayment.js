@@ -331,7 +331,7 @@ export default ({ navigation }) => {
                       alert(response?.error?.localizedMessage);
                       return;
                     }
-
+                    
                     navigation.dispatch(
                       CommonActions.reset({
                         index: 0,

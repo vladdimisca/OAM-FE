@@ -148,23 +148,29 @@ export default ({ navigation }) => {
             />
           </View>
 
-          {posts.map((post) => {
-            return (
-              <PostCard
-                key={post.id}
-                post={post}
-                currentUser={currentUser}
-                onPress={() => {
-                  navigation.push("ViewPost", { post });
-                }}
-                onProfilePicturePress={() => {
-                  navigation.push("Profile", {
-                    userId: post.user?.id,
-                  });
-                }}
-              />
-            );
-          })}
+          {posts
+            .filter(
+              (p) =>
+                selectedAssociation === null ||
+                p.association.id === selectedAssociation
+            )
+            .map((post) => {
+              return (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  currentUser={currentUser}
+                  onPress={() => {
+                    navigation.push("ViewPost", { post });
+                  }}
+                  onProfilePicturePress={() => {
+                    navigation.push("Profile", {
+                      userId: post.user?.id,
+                    });
+                  }}
+                />
+              );
+            })}
 
           {posts.length === 0 && (
             <Text style={styles.emptyListText}>

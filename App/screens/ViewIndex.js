@@ -9,10 +9,12 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  Dimensions,
 } from "react-native";
 import { DotIndicator } from "react-native-indicators";
 import Spinner from "react-native-loading-spinner-overlay";
 import { CommonActions } from "@react-navigation/native";
+import { Avatar } from "react-native-elements";
 
 // constants
 import colors from "../constants/colors";
@@ -52,6 +54,7 @@ const types = [
   },
 ];
 
+const screen = Dimensions.get("window");
 const styles = StyleSheet.create({
   addressText: {
     fontSize: 18,
@@ -138,6 +141,37 @@ export default ({ route, navigation }) => {
           <ItemSeparator />
 
           <ProfileItem
+            leftIcon={<Text style={styles.addressText}>Added by:</Text>}
+            text={
+              <View style={{ flexDirection: "row" }}>
+                <Avatar
+                  activeOpacity={0.7}
+                  size={screen.width * 0.09}
+                  rounded
+                  source={
+                    currentIndex.user?.profilePictureURL
+                      ? {
+                          uri: currentIndex.user?.profilePictureURL,
+                        }
+                      : require("../assets/images/profile-placeholder.png")
+                  }
+                />
+                <Text
+                  style={{ fontSize: 18, alignSelf: "center", marginLeft: 7 }}
+                >
+                  {currentIndex.user?.firstName} {currentIndex.user?.lastName}
+                </Text>
+              </View>
+            }
+            onPress={() => {
+              navigation.push("Profile", { userId: currentIndex.user?.id });
+            }}
+            active
+          />
+
+          <ItemSeparator />
+
+          <ProfileItem
             leftIcon={
               <Text style={{ ...styles.addressText, marginTop: 3 }}>
                 Association:
@@ -146,86 +180,81 @@ export default ({ route, navigation }) => {
             text={`Str. ${currentIndex.apartment?.association?.street}, no. ${currentIndex.apartment?.association?.number}, bl. ${currentIndex.apartment?.association?.block}, ${currentIndex.apartment?.association?.locality}, ${currentIndex.apartment?.association?.country}`}
           />
 
-          {currentIndex?.apartment?.association?.admins
-            ?.map((admin) => admin.id)
-            .includes(currentUser?.id) && (
-            <View
-              style={{
-                flex: 1,
-                flexDirection: "row",
-                marginTop: 5,
-                backgroundColor: colors.white,
-                zIndex: 2,
-              }}
-            >
-              <View style={{ flex: 1, marginHorizontal: 80 }}>
-                <GeneralButton
-                  text="Delete"
-                  backgroundColor={colors.red}
-                  onPress={() => {
-                    Alert.alert(
-                      "Do you really want to remove this index?",
-                      "This action is not reversible!",
-                      [
-                        {
-                          text: "Delete",
-                          onPress: async () => {
-                            setIsLoading(true);
-                            IndexService.deleteIndexById(currentIndex.id)
-                              .then(() => {
-                                navigation.dispatch(
-                                  CommonActions.reset({
-                                    index: 0,
-                                    key: null,
-                                    routes: [
-                                      {
-                                        name: "App",
-                                        state: {
-                                          routes: [
-                                            {
-                                              name: "Indexes",
-                                            },
-                                          ],
-                                        },
-                                      },
-                                    ],
-                                  })
-                                );
-                              })
-                              .catch((err) => {
-                                let alertMessage =
-                                  "Oops, something went wrong!";
-                                if (err?.response?.request?._response) {
-                                  alertMessage = `${
-                                    JSON.parse(err.response.request._response)
-                                      .errorMessages[0].errorMessage
-                                  }`;
-                                }
-                                Alert.alert(
-                                  "Could not delete this index!",
-                                  alertMessage,
-                                  [
+          <View
+            style={{
+              flex: 1,
+              flexDirection: "row",
+              marginTop: 5,
+              backgroundColor: colors.white,
+              zIndex: 2,
+            }}
+          >
+            <View style={{ flex: 1, marginHorizontal: 80 }}>
+              <GeneralButton
+                text="Delete"
+                backgroundColor={colors.red}
+                onPress={() => {
+                  Alert.alert(
+                    "Do you really want to remove this index?",
+                    "This action is not reversible!",
+                    [
+                      {
+                        text: "Delete",
+                        onPress: async () => {
+                          setIsLoading(true);
+                          IndexService.deleteIndexById(currentIndex.id)
+                            .then(() => {
+                              navigation.dispatch(
+                                CommonActions.reset({
+                                  index: 0,
+                                  key: null,
+                                  routes: [
                                     {
-                                      text: "Ok",
-                                      style: "cancel",
+                                      name: "App",
+                                      state: {
+                                        routes: [
+                                          {
+                                            name: "Indexes",
+                                          },
+                                        ],
+                                      },
                                     },
-                                  ]
-                                );
-                              })
-                              .finally(() => setIsLoading(false));
-                          },
+                                  ],
+                                })
+                              );
+                            })
+                            .catch((err) => {
+                              let alertMessage = "Oops, something went wrong!";
+                              if (err?.response?.request?._response) {
+                                alertMessage = `${
+                                  JSON.parse(err.response.request._response)
+                                    .errorMessages[0].errorMessage
+                                }`;
+                              }
+                              Alert.alert(
+                                "Could not delete this index!",
+                                alertMessage,
+                                [
+                                  {
+                                    text: "Ok",
+                                    style: "cancel",
+                                  },
+                                ]
+                              );
+                            })
+                            .finally(() => setIsLoading(false));
                         },
-                        {
-                          text: "Cancel",
-                          style: "cancel",
-                        },
-                      ]
-                    );
-                  }}
-                />
-              </View>
+                      },
+                      {
+                        text: "Cancel",
+                        style: "cancel",
+                      },
+                    ]
+                  );
+                }}
+              />
             </View>
-          )}
+          </View>
         </ScrollView>
       </SafeAreaView>
     </View>

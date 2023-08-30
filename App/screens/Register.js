@@ -57,11 +57,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     alignSelf: "center",
   },
+  fieldErrorText: {
+    marginHorizontal: 228,
+    color: colors.red,
+    fontSize: 15,
+    marginBottom: 12,
+  },
 });
 
 export default ({ navigation }) => {
   // request states
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
   // input fields
@@ -74,6 +81,18 @@ export default ({ navigation }) => {
   const [lastName, setLastName] = useState("");
   const [countryCode, setCountryCode] = useState("RO");
 
+  const getFieldError = (fieldName) => {
+    if (fieldErrors === null) {
+      return null;
+    }
+    const errors = fieldErrors?.filter((fe) => fe.fieldName === fieldName);
+    return errors.length !== 0 ? errors[0].errorMessage : null;
+  };
+
+  const getFieldErrorStyle = (fieldName) => {
+    return getFieldError(fieldName) !== null ? styles.fieldErrorText : null;
+  };
+
   const signUp = async () => {
     if (isLoading === true) {
       return;
@@ -83,6 +102,7 @@ export default ({ navigation }) => {
       return;
     }
     setError("");
+    setFieldErrors(null);
     setIsLoading(true);
 
     try {
@@ -103,15 +123,25 @@ export default ({ navigation }) => {
       );
     } catch (err) {
       if (err?.response?.request?._response) {
-        setError(
-          `${
-            JSON.parse(err.response.request._response).errorMessages[0]
-              .errorMessage
-          }`
-        );
+        const errorMessages = JSON.parse(
+          err.response.request._response
+        ).errorMessages;
+        if (errorMessages[0].fieldName !== null) {
+          setFieldErrors(
+            JSON.parse(err.response.request._response).errorMessages
+          );
+        } else {
+          setError(
+            `${
+              JSON.parse(err.response.request._response).errorMessages[0]
+                .errorMessage
+            }`
+          );
+        }
       } else {
         setError("Oops, something went wrong!");
       }
+    } finally {
       setIsLoading(false);
     }
   };
@@ -156,11 +186,31 @@ export default ({ navigation }) => {
               }
             />
 
+            {getFieldError("phoneNumber") !== null && (
+              <Text
+                style={{
+                  ...getFieldErrorStyle("phoneNumber"),
+                }}
+              >
+                {getFieldError("phoneNumber")}
+              </Text>
+            )}
+
             <CustomInput
               onTextChange={setFirstName}
               placeholder="First Name..."
               icon={<FontAwesome name="user-o" size={28} color={colors.text} />}
             />
+
+            {getFieldError("firstName") !== null && (
+              <Text
+                style={{
+                  ...getFieldErrorStyle("firstName"),
+                }}
+              >
+                {getFieldError("firstName")}
+              </Text>
+            )}
 
             <CustomInput
               onTextChange={setLastName}
@@ -168,12 +218,32 @@ export default ({ navigation }) => {
               icon={<FontAwesome name="user-o" size={28} color={colors.text} />}
             />
 
+            {getFieldError("lastName") !== null && (
+              <Text
+                style={{
+                  ...getFieldErrorStyle("lastName"),
+                }}
+              >
+                {getFieldError("lastName")}
+              </Text>
+            )}
+
             <CustomInput
               autoCapitalize="none"
               onTextChange={setEmail}
               placeholder="Email..."
               icon={<Fontisto name="email" size={28} color={colors.text} />}
             />
+
+            {getFieldError("email") !== null && (
+              <Text
+                style={{
+                  ...getFieldErrorStyle("email"),
+                }}
+              >
+                {getFieldError("email")}
+              </Text>
+            )}
 
             <CustomInput
               autoCapitalize="none"
@@ -189,6 +259,16 @@ export default ({ navigation }) => {
                 />
               }
             />
+
+            {getFieldError("password") !== null && (
+              <Text
+                style={{
+                  ...getFieldErrorStyle("password"),
+                }}
+              >
+                {getFieldError("password")}
+              </Text>
+            )}
 
             <CustomInput
               autoCapitalize="none"
@@ -220,7 +300,7 @@ export default ({ navigation }) => {
             <Text style={styles.errorText}>{error}</Text>
           )}
 
-          <NextButton onPress={() => signUp()} />
+          <NextButton onPress={signUp} />
         </ScrollView>
       </SafeAreaView>
     </View>

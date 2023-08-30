@@ -199,6 +199,38 @@ export default ({ route, navigation }) => {
           <ItemSeparator />
 
           <ProfileItem
+            leftIcon={<Text style={styles.addressText}>Added by:</Text>}
+            text={
+              <View style={{ flexDirection: "row" }}>
+                <Avatar
+                  activeOpacity={0.7}
+                  size={screen.width * 0.09}
+                  rounded
+                  source={
+                    currentInvoice.user?.profilePictureURL
+                      ? {
+                          uri: currentInvoice.user?.profilePictureURL,
+                        }
+                      : require("../assets/images/profile-placeholder.png")
+                  }
+                />
+                <Text
+                  style={{ fontSize: 18, alignSelf: "center", marginLeft: 7 }}
+                >
+                  {currentInvoice.user?.firstName}{" "}
+                  {currentInvoice.user?.lastName}
+                </Text>
+              </View>
+            }
+            onPress={() => {
+              navigation.push("Profile", { userId: currentInvoice.user?.id });
+            }}
+            active
+          />
+
+          <ItemSeparator />
+
+          <ProfileItem
             leftIcon={
               <Text style={{ ...styles.addressText, marginTop: 3 }}>
                 Association:

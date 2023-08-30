@@ -396,7 +396,9 @@ export default ({ navigation }) => {
               <ItemSeparator />
 
               <TouchableOpacity onPress={signOut} activeOpacity={0.6}>
-                <Text style={styles.actionText}>Sign out</Text>
+                <Text style={{ ...styles.actionText, color: colors.green }}>
+                  Sign out
+                </Text>
               </TouchableOpacity>
 
               <ItemSeparator />
@@ -411,7 +413,9 @@ export default ({ navigation }) => {
                 onPress={() => navigation.push("DeleteAccount")}
                 activeOpacity={0.6}
               >
-                <Text style={styles.actionText}>Delete account</Text>
+                <Text style={{ ...styles.actionText, color: colors.red }}>
+                  Delete account
+                </Text>
               </TouchableOpacity>
             </View>
           </ScrollView>

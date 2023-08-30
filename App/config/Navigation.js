@@ -50,6 +50,8 @@ import ViewInvoiceDistribution from "../screens/ViewInvoiceDistribution";
 import ViewPayment from "../screens/ViewPayment";
 import Posts from "../screens/Posts";
 import ViewPost from "../screens/ViewPost";
+import CreatePost from "../screens/CreatePost";
+import AddAdmin from "../screens/AddAdmin";
 
 const emptyHeaderOptions = {
   title: null,
@@ -217,7 +219,12 @@ const AssociationsStackScreen = () => (
     />
     <AssociationsStack.Screen
       name="DeleteAccount"
-      component={DeleteAccount}
+      component={AddAdmin}
+      options={emptyHeaderOptions}
+    />
+    <AssociationsStack.Screen
+      name="AddAdmin"
+      component={AddAdmin}
       options={emptyHeaderOptions}
     />
   </AssociationsStack.Navigator>
@@ -241,6 +248,26 @@ const InvoicesStackScreen = () => (
       component={ViewInvoice}
       options={{ ...headerOptions, title: "Invoice details" }}
     />
+    <InvoicesStack.Screen
+      name="Profile"
+      component={Profile}
+      options={{ headerShown: false }}
+    />
+    <InvoicesStack.Screen
+      name="Settings"
+      component={Settings}
+      options={headerOptions}
+    />
+    <InvoicesStack.Screen
+      name="ChangePassword"
+      component={ChangePassword}
+      options={emptyHeaderOptions}
+    />
+    <InvoicesStack.Screen
+      name="DeleteAccount"
+      component={DeleteAccount}
+      options={emptyHeaderOptions}
+    />
   </InvoicesStack.Navigator>
 );
 
@@ -261,6 +288,26 @@ const IndexesStackScreen = () => (
       name="ViewIndex"
       component={ViewIndex}
       options={{ ...headerOptions, title: "Index details" }}
+    />
+    <IndexesStack.Screen
+      name="Profile"
+      component={Profile}
+      options={{ headerShown: false }}
+    />
+    <IndexesStack.Screen
+      name="Settings"
+      component={Settings}
+      options={headerOptions}
+    />
+    <IndexesStack.Screen
+      name="ChangePassword"
+      component={ChangePassword}
+      options={emptyHeaderOptions}
+    />
+    <IndexesStack.Screen
+      name="DeleteAccount"
+      component={DeleteAccount}
+      options={emptyHeaderOptions}
     />
   </IndexesStack.Navigator>
 );
@@ -326,6 +373,14 @@ const PostsStackScreen = () => (
         ...headerOptions,
         title: "Post details",
         headerStyle: { backgroundColor: colors.offWhite },
+      }}
+    />
+    <PostsStack.Screen
+      name="CreatePost"
+      component={CreatePost}
+      options={{
+        ...headerOptions,
+        title: "Create a new post",
       }}
     />
   </PostsStack.Navigator>

@@ -24,14 +24,12 @@ import { UserStorage } from "../util/UserStorage";
 // services
 import { PaymentService } from "../services/PaymentService";
 import { UserService } from "../services/UserService";
-import { ApartmentService } from "../services/ApartmentService";
 
 // components
 import { FocusAwareStatusBar } from "../components/FocusAwareStatusBar";
 import { PaymentCard } from "../components/PaymentCard";
 import { GeneralButton } from "../components/GeneralButton";
 import { ProfileItem } from "../components/ProfileItem";
-import { CustomDropdown } from "../components/CustomDropdown";
 
 // ignored warnings
 LogBox.ignoreLogs(["new NativeEventEmitter"]);
@@ -58,10 +56,8 @@ export default ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [payments, setPayments] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
-  const [apartments, setApartments] = useState([]);
   const [isDatePickerActive, setIsDatePickerActive] = useState(false);
   const [date, setDate] = useState(new Date());
-  const [selectedApartment, setSelectedApartment] = useState(null);
 
   const getPayments = useCallback(async (overlay = true) => {
     if (overlay) {
@@ -69,17 +65,6 @@ export default ({ navigation }) => {
     }
     const { userId } = await UserStorage.retrieveUserIdAndToken();
     await UserService.getUserById(userId).then((user) => setCurrentUser(user));
-
-    await ApartmentService.getApartments().then((fetchedApartments) =>
-      setApartments(
-        fetchedApartments.map((a) => {
-          return {
-            label: `Ap. ${a.number} - Str. ${a.association?.street}, no. ${a.association?.number}, bl. ${a.association?.block}, ${a.association?.locality}, ${a.association?.country}`,
-            value: a.id,
-          };
-        })
-      )
-    );
 
     await PaymentService.getPayments()
       .then(setPayments)
@@ -175,26 +160,6 @@ export default ({ navigation }) => {
 
           {!isDatePickerActive && (
             <>
-              <View style={styles.dropdown}>
-                <CustomDropdown
-                  defaultButtonText={
-                    selectedApartment !== null
-                      ? apartments.filter(
-                          (a) => a.value === selectedApartment
-                        )[0]?.label
-                      : "Select the apartment..."
-                  }
-                  data={apartments}
-                  onSelect={(selectedItem) => {
-                    setSelectedApartment(selectedItem.value);
-                  }}
-                  buttonTextAfterSelection={(selectedItem) =>
-                    selectedItem.label
-                  }
-                  rowTextForSelection={(selectedItem) => selectedItem.label}
-                />
-              </View>
-
               <ProfileItem
                 leftIcon={
                   // eslint-disable-next-line react/jsx-wrap-multilines

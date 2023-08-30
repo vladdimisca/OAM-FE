@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-one-expression-per-line */
-import React from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
   View,
@@ -7,7 +7,7 @@ import {
   Text,
   TouchableOpacity,
 } from "react-native";
-import { Avatar } from "react-native-elements";
+import { Avatar, Overlay } from "react-native-elements";
 import {
   Menu,
   MenuOptions,
@@ -19,6 +19,8 @@ import moment from "moment";
 
 // constants
 import colors from "../constants/colors";
+
+import { FocusAwareStatusBar } from "./FocusAwareStatusBar";
 
 const screen = Dimensions.get("window");
 const styles = StyleSheet.create({
@@ -49,7 +51,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   menuText: {
-    color: "#e60000",
+    color: colors.green,
     alignSelf: "center",
     fontSize: 14,
     padding: 5,
@@ -70,6 +72,8 @@ const styles = StyleSheet.create({
 });
 
 export const PostCard = ({ post, onPress, onProfilePicturePress }) => {
+  const [isOverlayVisible, setIsOverlayVisible] = useState(false);
+
   const getDateFromString = (strDate) => {
     const date = new Date(strDate);
     return new Date(date.getTime() + date.getTimezoneOffset() * 60000);
@@ -77,6 +81,9 @@ export const PostCard = ({ post, onPress, onProfilePicturePress }) => {
 
   return (
     <View style={styles.card}>
+      {isOverlayVisible && (
+        <FocusAwareStatusBar backgroundColor={colors.border} />
+      )}
       <View style={{ alignItems: "center" }}>
         <TouchableOpacity
           style={{ justifyContent: "center" }}
@@ -151,12 +158,41 @@ export const PostCard = ({ post, onPress, onProfilePicturePress }) => {
 
         <MenuOptions>
           <TouchableOpacity activeOpacity={0.7}>
-            <MenuOption onSelect={() => {}}>
-              <Text style={styles.menuText}>Delete</Text>
+            <MenuOption onSelect={() => setIsOverlayVisible(true)}>
+              <Text style={styles.menuText}>Show summary</Text>
             </MenuOption>
           </TouchableOpacity>
         </MenuOptions>
       </Menu>
+
+      <Overlay
+        overlayStyle={{
+          width: screen.width * 0.9,
+          minHeight: screen.height * 0.4,
+          borderRadius: 10,
+        }}
+        backdropStyle={{
+          backgroundColor: colors.lightText,
+          opacity: 0.4,
+        }}
+        isVisible={isOverlayVisible}
+        onBackdropPress={() => setIsOverlayVisible(false)}
+      >
+        <Text
+          style={{
+            textAlign: "justify",
+            paddingHorizontal: 10,
+            paddingTop: 10,
+            fontSize: 15,
+            fontWeight: "bold",
+          }}
+        >
+          Auto-generated summary (English version):
+        </Text>
+        <Text style={{ textAlign: "justify", padding: 10, fontSize: 14 }}>
+          {post.summary}
+        </Text>
+      </Overlay>
     </View>
   );
 };

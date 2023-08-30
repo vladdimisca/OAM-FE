@@ -150,6 +150,13 @@ export default ({ route, navigation }) => {
 
           <ItemSeparator />
 
+          <ProfileItem
+            leftIcon={<Text style={styles.addressText}>Iban:</Text>}
+            text={currentAssociation.iban}
+          />
+
+          <ItemSeparator />
+
           {currentAssociation.admins
             ?.map((admin) => admin.id)
             .includes(currentUser?.id) && (

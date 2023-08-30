@@ -4,7 +4,7 @@ import { View, StyleSheet, SafeAreaView, Text } from "react-native";
 import { DotIndicator } from "react-native-indicators";
 import Spinner from "react-native-loading-spinner-overlay";
 import { Input } from "react-native-elements";
-import { Ionicons } from "react-native-vector-icons";
+import { Fontisto } from "react-native-vector-icons";
 import { ScrollView } from "react-native-gesture-handler";
 import { CommonActions } from "@react-navigation/native";
 
@@ -16,10 +16,7 @@ import { FocusAwareStatusBar } from "../components/FocusAwareStatusBar";
 import colors from "../constants/colors";
 
 // services
-import { UserService } from "../services/UserService";
-
-// storage
-import { UserStorage } from "../util/UserStorage";
+import { AssociationService } from "../services/AssociationService";
 
 const styles = StyleSheet.create({
   inputContainerStyle: {
@@ -43,12 +40,12 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ({ navigation }) => {
+export default ({ navigation, route }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
   // input fields
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
 
   return (
     <View style={{ flex: 1 }}>
@@ -64,18 +61,18 @@ export default ({ navigation }) => {
       />
       <SafeAreaView>
         <ScrollView>
-          <Text style={styles.text}>Delete your account</Text>
+          <Text style={styles.text}>Add an admin member</Text>
 
           <Input
-            secureTextEntry
+            autoCapitalize="none"
             leftIcon={
-              <Ionicons name="key-outline" size={24} color={colors.text} />
+              <Fontisto name="email" size={24} color={colors.darkBorder} />
             }
-            placeholder="Enter your password..."
+            placeholder="Enter the email..."
             inputContainerStyle={styles.inputContainerStyle}
             leftIconContainerStyle={styles.leftIconContainerStyle}
-            value={password}
-            onChangeText={setPassword}
+            value={email}
+            onChangeText={setEmail}
           />
 
           {isLoading === false && error !== "" && (
@@ -83,7 +80,7 @@ export default ({ navigation }) => {
           )}
 
           <GeneralButton
-            text="Delete account"
+            text="Submit"
             onPress={async () => {
               if (isLoading === true) {
                 return;
@@ -91,23 +88,22 @@ export default ({ navigation }) => {
               setError("");
               setIsLoading(true);
 
-              const { userId } = await UserStorage.retrieveUserIdAndToken();
-
-              UserService.deleteAccount(userId, password)
+              AssociationService.addAdminMemberToAssociation(
+                email,
+                route.params.association.id
+              )
                 .then(async () => {
-                  await UserStorage.clearStorage();
-
                   navigation.dispatch(
                     CommonActions.reset({
                       index: 0,
                       key: null,
                       routes: [
                         {
-                          name: "Authentication",
+                          name: "App",
                           state: {
                             routes: [
                               {
-                                name: "Login",
+                                name: "Associations",
                               },
                             ],
                           },

@@ -21,8 +21,12 @@ import {
 // constants
 import colors from "../constants/colors";
 
+// storage
+import { UserStorage } from "../util/UserStorage";
+
 // services
 import { AssociationService } from "../services/AssociationService";
+import { UserService } from "../services/UserService";
 
 // components
 import { FocusAwareStatusBar } from "../components/FocusAwareStatusBar";
@@ -51,11 +55,15 @@ export default ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [associations, setAssociations] = useState([]);
   const [associationRole, setAssociationRole] = useState("ADMIN");
+  const [currentUser, setCurrentUser] = useState(null);
 
   const getAssociations = useCallback(async (role, overlay = true) => {
     if (overlay) {
       setIsLoading(true);
     }
+
+    const { userId } = await UserStorage.retrieveUserIdAndToken();
+    await UserService.getUserById(userId).then((user) => setCurrentUser(user));
 
     await AssociationService.getAssociations(role)
       .then(setAssociations)
@@ -188,6 +196,7 @@ export default ({ navigation }) => {
               <AssociationCard
                 key={association.id}
                 association={association}
+                currentUser={currentUser}
                 onImagePress={() =>
                   navigation.push("ShowLocation", {
                     location: {
@@ -207,6 +216,7 @@ export default ({ navigation }) => {
                 onMembersPress={() =>
                   navigation.push("AssociationMembers", { association })
                 }
+                onAddAdmin={() => navigation.push("AddAdmin", { association })}
               />
             );
           })}

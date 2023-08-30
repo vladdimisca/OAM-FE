@@ -6,6 +6,7 @@ import {
   Ionicons,
   MaterialIcons,
   FontAwesome5,
+  MaterialCommunityIcons,
 } from "react-native-vector-icons";
 
 // constants
@@ -70,6 +71,7 @@ export const ApartmentCard = ({
   apartment,
   onDetails,
   onMembers,
+  onLeave,
   currentUser,
 }) => {
   const [showCode, setShowCode] = useState(false);
@@ -133,6 +135,7 @@ export const ApartmentCard = ({
             Details
           </Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           style={{ flexDirection: "row", marginTop: 10 }}
           onPress={onMembers}
@@ -143,6 +146,23 @@ export const ApartmentCard = ({
             Members
           </Text>
         </TouchableOpacity>
+
+        {apartment.members?.map((user) => user.id).includes(currentUser.id) && (
+          <TouchableOpacity
+            style={{ flexDirection: "row", marginTop: 10 }}
+            onPress={onLeave}
+            activeOpacity={0.7}
+          >
+            <MaterialCommunityIcons
+              name="exit-run"
+              size={20}
+              color={colors.lightText}
+            />
+            <Text style={{ fontSize: 15, marginLeft: 3, color: colors.red }}>
+              Leave
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );

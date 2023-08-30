@@ -71,6 +71,8 @@ export const AssociationCard = ({
   onAssociationPress,
   onApartmentsPress,
   onMembersPress,
+  onAddAdmin,
+  currentUser,
 }) => {
   const showMenu = true;
 
@@ -118,6 +120,20 @@ export const AssociationCard = ({
                     Apartments
                   </Text>
                 </MenuOption>
+                {association.admins
+                  ?.map((user) => user.id)
+                  .includes(currentUser?.id) && (
+                  <MenuOption onSelect={onAddAdmin}>
+                    <Text
+                      style={{
+                        ...styles.menuText,
+                        color: colors.red,
+                      }}
+                    >
+                      Add admin
+                    </Text>
+                  </MenuOption>
+                )}
               </TouchableOpacity>
             </MenuOptions>
           </Menu>

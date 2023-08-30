@@ -86,7 +86,7 @@ const types = [
   },
 ];
 
-export const IndexCard = ({ index, onSelect }) => {
+export const IndexCard = ({ index, onSelect, onProfilePicturePress }) => {
   const getMonthName = (monthNumber) => {
     const date = new Date();
     date.setMonth(monthNumber - 1);
@@ -96,7 +96,22 @@ export const IndexCard = ({ index, onSelect }) => {
 
   return (
     <View style={styles.card}>
-      <View>
+      <View style={{ flexDirection: "column", alignItems: "center" }}>
+        <TouchableOpacity activeOpacity={0.7} onPress={onProfilePicturePress}>
+          <Avatar
+            activeOpacity={0.7}
+            size={screen.width * 0.11}
+            rounded
+            source={
+              index.user?.profilePictureURL
+                ? {
+                    uri: index.user?.profilePictureURL,
+                  }
+                : require("../assets/images/profile-placeholder.png")
+            }
+          />
+        </TouchableOpacity>
+
         <Text style={{ fontSize: 12, marginTop: 5, fontStyle: "italic" }}>
           {getMonthName(index.month)} {index.year}
         </Text>

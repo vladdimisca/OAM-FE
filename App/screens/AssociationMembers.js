@@ -4,6 +4,7 @@ import {
   StyleSheet,
   ScrollView,
   RefreshControl,
+  Alert,
 } from "react-native";
 import { DotIndicator } from "react-native-indicators";
 import Spinner from "react-native-loading-spinner-overlay";
@@ -17,6 +18,9 @@ import colors from "../constants/colors";
 import { FocusAwareStatusBar } from "../components/FocusAwareStatusBar";
 import { CustomInput } from "../components/CustomInput";
 import { UserCard } from "../components/UserCard";
+
+// storage
+import { UserStorage } from "../util/UserStorage";
 
 // service
 import { UserService } from "../services/UserService";
@@ -35,12 +39,16 @@ export default ({ navigation, route }) => {
   const [searchText, setSearchText] = useState("");
   const [users, setUsers] = useState([]);
   const [displayedUsers, setDisplayedUsers] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
 
   const fetchUsers = useCallback(
     async (overlay = true) => {
       if (overlay) {
         setIsLoading(true);
       }
+
+      const { userId } = await UserStorage.retrieveUserIdAndToken();
+      await UserService.getUserById(userId).then(setCurrentUser);
 
       if (route.params.apartment) {
         const apartmentMembers = route.params.apartment.members;
@@ -140,12 +148,59 @@ export default ({ navigation, route }) => {
               apartments={route.params.association.apartments.filter((ap) =>
                 ap.members.map((m) => m.id).includes(user.id)
               )}
+              currentUser={currentUser}
+              association={route.params.association}
               key={user.id}
               user={user}
               onPress={() => navigation.push("Profile", { userId: user.id })}
-              onDelete={() =>
-                navigation.push("DeleteAccount", { userId: user.id })
-              }
+              onRemove={async () => {
+                Alert.alert(
+                  "Do you really want to remove this member?",
+                  "This action is not reversible!",
+                  [
+                    {
+                      text: "Remove",
+                      onPress: async () => {
+                        setIsLoading(true);
+                        AssociationService.removeMemberFromAssociation(
+                          user.id,
+                          route.params.association.id
+                        )
+                          .then(() => {
+                            setUsers(users.filter((u) => u.id !== user.id));
+                            setDisplayedUsers(
+                              displayedUsers.filter((u) => u.id !== user.id)
+                            );
+                          })
+                          .catch((err) => {
+                            let alertMessage = "Oops, something went wrong!";
+                            if (err?.response?.request?._response) {
+                              alertMessage = `${
+                                JSON.parse(err.response.request._response)
+                                  .errorMessages[0].errorMessage
+                              }`;
+                            }
+                            Alert.alert(
+                              "Could not remove this member!",
+                              alertMessage,
+                              [
+                                {
+                                  text: "Ok",
+                                  style: "cancel",
+                                },
+                              ]
+                            );
+                          })
+                          .finally(() => setIsLoading(false));
+                      },
+                    },
+                    {
+                      text: "Cancel",
+                      style: "cancel",
+                    },
+                  ]
+                );
+              }}
             />
           );
         })}

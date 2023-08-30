@@ -1,7 +1,8 @@
 import React from "react";
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet, Dimensions } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { CommonActions, useFocusEffect } from "@react-navigation/native";
+import { Avatar } from "react-native-elements";
 
 // constants
 import colors from "../constants/colors";
@@ -15,17 +16,12 @@ import { UserStorage } from "../util/UserStorage";
 // service
 import { UserService } from "../services/UserService";
 
+const screen = Dimensions.get("window");
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-  },
-  text: {
-    fontSize: 30,
-    color: colors.white,
-    fontStyle: "italic",
-    fontWeight: "bold",
   },
 });
 
@@ -78,7 +74,11 @@ export default ({ navigation }) => {
         style={styles.container}
         colors={[colors.midBlue, colors.darkBlue]}
       >
-        <Text style={styles.text}> OAM </Text>
+        <Avatar
+          activeOpacity={0.7}
+          size={screen.width * 0.65}
+          source={require("../assets/images/splash.png")}
+        />
       </LinearGradient>
     </>
   );

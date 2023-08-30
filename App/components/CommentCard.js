@@ -1,10 +1,14 @@
-import React from "react";
-import { StyleSheet, View, Dimensions, Text } from "react-native";
+import React, { useState } from "react";
+import { StyleSheet, Alert, View, Dimensions, Text } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
-import { Avatar } from "react-native-elements";
+import { Avatar, Input } from "react-native-elements";
 import moment from "moment";
+import { AntDesign, Ionicons, MaterialIcons } from "react-native-vector-icons";
 
 import colors from "../constants/colors";
+
+// services
+import { CommentService } from "../services/CommentService";
 
 const screen = Dimensions.get("window");
 const styles = StyleSheet.create({
@@ -19,9 +23,31 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth,
     marginHorizontal: 20,
   },
+  textAreaContainer: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.darkBorder,
+    borderRadius: 20,
+    backgroundColor: colors.lightWhite,
+    marginTop: 15,
+    marginBottom: -25,
+    marginLeft: -12,
+  },
 });
 
-export const CommentCard = ({ comment, rightIcon, onProfilePicturePress }) => {
+export const CommentCard = ({
+  comment,
+  onProfilePicturePress,
+  currentUser,
+  onDelete,
+  isReqLoading,
+  setIsReqLoading,
+  setComments,
+}) => {
+  const [isCommentEditing, setIsCommentEditing] = useState(false);
+  const [newText, setNewText] = useState("");
+
   const getDateFromString = (strDate) => {
     const date = new Date(strDate);
     return new Date(date.getTime() + date.getTimezoneOffset() * 60000);
@@ -44,34 +70,146 @@ export const CommentCard = ({ comment, rightIcon, onProfilePicturePress }) => {
         />
       </TouchableOpacity>
 
-      <View style={{ marginLeft: 10 }}>
-        <Text style={{ color: colors.text, fontWeight: "bold", fontSize: 16 }}>
-          {`${comment.user?.firstName} ${comment.user?.lastName}`}
-        </Text>
+      <View style={{ marginLeft: 12, flex: 1 }}>
+        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          <View>
+            <Text
+              style={{ color: colors.text, fontWeight: "bold", fontSize: 16 }}
+            >
+              {`${comment.user?.firstName} ${comment.user?.lastName}`}
+            </Text>
 
-        <Text
-          style={{
-            color: colors.lightText,
-            fontSize: 11,
-          }}
-        >
-          {moment(getDateFromString(comment?.createdAt)).format("lll")}
-        </Text>
+            <Text
+              style={{
+                color: colors.lightText,
+                fontSize: 11,
+              }}
+            >
+              {moment(getDateFromString(comment?.createdAt)).format("lll")}
+            </Text>
+          </View>
 
-        <Text
-          style={{
-            color: colors.text,
-            fontSize: 15,
-            textAlign: "justify",
-            maxWidth: screen.width * 0.7,
-            marginTop: 5,
-          }}
-        >
-          {comment.text}
-        </Text>
+          {comment?.user?.id === currentUser?.id &&
+            (!isCommentEditing ? (
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                }}
+              >
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setNewText(comment?.text);
+                    setIsCommentEditing(true);
+                  }}
+                >
+                  <AntDesign name="edit" size={20} color={colors.green} />
+                </TouchableOpacity>
+
+                <TouchableOpacity activeOpacity={0.7} onPress={onDelete}>
+                  <AntDesign
+                    name="delete"
+                    size={20}
+                    color={colors.red}
+                    style={{ marginHorizontal: 8 }}
+                  />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                }}
+              >
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={async () => {
+                    if (isReqLoading === true) {
+                      return;
+                    }
+                    setIsReqLoading(true);
+
+                    CommentService.updateCommentById(comment.id, {
+                      text: newText,
+                    })
+                      .then((comm) => {
+                        setComments((comms) => {
+                          return comms.map((c) =>
+                            c.id === comment.id ? comm : c
+                          );
+                        });
+                        setIsCommentEditing(false);
+                      })
+                      .catch((err) => {
+                        let alertMessage = "Oops, something went wrong!";
+                        if (err?.response?.request?._response) {
+                          alertMessage = `${
+                            JSON.parse(err.response.request._response)
+                              .errorMessages[0].errorMessage
+                          }`;
+                        }
+                        Alert.alert(
+                          "Could not update this comment!",
+                          alertMessage,
+                          [
+                            {
+                              text: "Ok",
+                              style: "cancel",
+                            },
+                          ]
+                        );
+                      })
+                      .finally(() => {
+                        setIsReqLoading(false);
+                      });
+                  }}
+                >
+                  <Ionicons
+                    name="checkmark-done"
+                    size={22}
+                    color={colors.midBlue}
+                  />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => setIsCommentEditing(false)}
+                >
+                  <MaterialIcons
+                    name="cancel"
+                    size={20}
+                    color={colors.red}
+                    style={{ marginLeft: 6 }}
+                  />
+                </TouchableOpacity>
+              </View>
+            ))}
+        </View>
+
+        {!isCommentEditing ? (
+          <Text
+            style={{
+              color: colors.text,
+              fontSize: 15,
+              textAlign: "justify",
+              maxWidth: screen.width * 0.7,
+              marginTop: 5,
+            }}
+          >
+            {comment.text}
+          </Text>
+        ) : (
+          <Input
+            inputContainerStyle={styles.textAreaContainer}
+            maxLength={200}
+            multiline
+            value={newText}
+            onChangeText={setNewText}
+          />
+        )}
       </View>
-
-      {rightIcon}
     </View>
   );
 };

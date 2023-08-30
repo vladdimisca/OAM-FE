@@ -41,7 +41,7 @@ export const ProfileItem = ({
           onPress={onPress}
           style={{
             ...styles.textStyle,
-            width: rightIcon ? screen.width * 0.6 : screen.width * 0.65,
+            width: rightIcon ? screen.width * 0.6 : screen.width * 0.67,
             color:
               customTextColor !== undefined
                 ? customTextColor

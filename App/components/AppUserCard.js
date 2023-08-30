@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-one-expression-per-line */
 import React from "react";
 import {
   StyleSheet,
@@ -49,7 +48,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   menuText: {
-    color: "#e60000",
+    color: colors.red,
     alignSelf: "center",
     fontSize: 14,
     padding: 5,
@@ -63,39 +62,27 @@ const styles = StyleSheet.create({
   },
 });
 
-export const UserCard = ({
-  user,
-  onPress,
-  onRemove,
-  role,
-  currentUser,
-  association,
-  apartments = [],
-}) => {
+export const AppUserCard = ({ user, onPress, onBan }) => {
   return (
     <View style={styles.card}>
-      <View style={{ alignItems: "center" }}>
-        <TouchableOpacity
-          style={{ justifyContent: "center" }}
+      <TouchableOpacity
+        style={{ justifyContent: "center" }}
+        activeOpacity={0.7}
+        onPress={onPress}
+      >
+        <Avatar
           activeOpacity={0.7}
-          onPress={onPress}
-        >
-          <Avatar
-            activeOpacity={0.7}
-            size={screen.width * 0.18}
-            rounded
-            source={
-              user?.profilePictureURL
-                ? {
-                    uri: user?.profilePictureURL,
-                  }
-                : require("../assets/images/profile-placeholder.png")
-            }
-          />
-        </TouchableOpacity>
-
-        <Text style={styles.description}>{role}</Text>
-      </View>
+          size={screen.width * 0.18}
+          rounded
+          source={
+            user?.profilePictureURL
+              ? {
+                  uri: user?.profilePictureURL,
+                }
+              : require("../assets/images/profile-placeholder.png")
+          }
+        />
+      </TouchableOpacity>
 
       <View style={{ ...styles.column, flex: 1 }}>
         <Text style={styles.nameText}>
@@ -103,38 +90,36 @@ export const UserCard = ({
         </Text>
 
         <Text style={styles.description}>
-          {user?.description?.length > 22
+          {user?.description.length > 22
             ? `${user?.description.substring(0, 22)}...`
             : user?.description}
         </Text>
-
-        <Text style={styles.description}>
-          {`Apartments: ${
-            apartments.length === 0 ? "-" : apartments.map((a) => a.number)
-          }`}
-        </Text>
       </View>
 
-      {association.admins?.map((u) => u.id).includes(currentUser?.id) && (
-        <Menu>
-          <MenuTrigger>
-            <Entypo
-              size={34}
-              name="menu"
-              color={colors.border}
-              style={{ marginRight: 8 }}
-            />
-          </MenuTrigger>
+      <Menu>
+        <MenuTrigger>
+          <Entypo
+            size={34}
+            name="menu"
+            color={colors.border}
+            style={{ marginRight: 8 }}
+          />
+        </MenuTrigger>
 
-          <MenuOptions>
-            <TouchableOpacity activeOpacity={0.7}>
-              <MenuOption onSelect={onRemove}>
-                <Text style={styles.menuText}>Remove</Text>
-              </MenuOption>
-            </TouchableOpacity>
-          </MenuOptions>
-        </Menu>
-      )}
+        <MenuOptions>
+          <TouchableOpacity activeOpacity={0.7}>
+            <MenuOption onSelect={onBan}>
+              {user?.isBanned ? (
+                <Text style={{ ...styles.menuText, color: colors.green }}>
+                  Remove ban
+                </Text>
+              ) : (
+                <Text style={styles.menuText}>Ban</Text>
+              )}
+            </MenuOption>
+          </TouchableOpacity>
+        </MenuOptions>
+      </Menu>
     </View>
   );
 };
