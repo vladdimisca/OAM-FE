@@ -63,12 +63,19 @@ const styles = StyleSheet.create({
     borderColor: colors.darkBorder,
     borderRadius: 10,
   },
+  fieldErrorText: {
+    marginHorizontal: 20,
+    color: colors.red,
+    fontSize: 15,
+    marginBottom: 17,
+  },
 });
 
 export default ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isReqLoading, setIsReqLoading] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState(null);
 
   const [associations, setAssociations] = useState([]);
   const [postDetails, setPostDetails] = useState({
@@ -76,6 +83,18 @@ export default ({ navigation }) => {
     text: "",
     associationId: null,
   });
+
+  const getFieldError = (fieldName) => {
+    if (fieldErrors === null) {
+      return null;
+    }
+    const errors = fieldErrors?.filter((fe) => fe.fieldName === fieldName);
+    return errors.length !== 0 ? errors[0].errorMessage : null;
+  };
+
+  const getFieldErrorStyle = (fieldName) => {
+    return getFieldError(fieldName) !== null ? styles.fieldErrorText : null;
+  };
 
   useEffect(() => {
     (() => {
@@ -134,9 +153,23 @@ export default ({ navigation }) => {
               buttonTextAfterSelection={(selectedItem) => selectedItem.label}
               rowTextForSelection={(selectedItem) => selectedItem.label}
             />
+
+            {getFieldError("associationId") !== null && (
+              <Text
+                style={{
+                  ...getFieldErrorStyle("associationId"),
+                  marginLeft: 5,
+                  marginBottom: -10,
+                }}
+              >
+                {getFieldError("associationId")}
+              </Text>
+            )}
           </View>
 
           <Input
+            errorMessage={getFieldError("title")}
+            errorStyle={getFieldErrorStyle("title")}
             label="Title"
             labelStyle={styles.labelStyle}
             inputContainerStyle={styles.inputContainerStyle}
@@ -150,6 +183,8 @@ export default ({ navigation }) => {
           />
 
           <Input
+            errorMessage={getFieldError("text")}
+            errorStyle={getFieldErrorStyle("text")}
             multiline
             maxLength={600}
             label="Content"
@@ -173,6 +208,7 @@ export default ({ navigation }) => {
               if (isReqLoading === true) {
                 return;
               }
+              setFieldErrors(null);
               setError("");
               setIsReqLoading(true);
 
@@ -195,12 +231,21 @@ export default ({ navigation }) => {
                 })
                 .catch((err) => {
                   if (err?.response?.request?._response) {
-                    setError(
-                      `${
-                        JSON.parse(err.response.request._response)
-                          .errorMessages[0].errorMessage
-                      }`
-                    );
+                    const errorMessages = JSON.parse(
+                      err.response.request._response
+                    ).errorMessages;
+                    if (errorMessages[0].fieldName !== null) {
+                      setFieldErrors(
+                        JSON.parse(err.response.request._response).errorMessages
+                      );
+                    } else {
+                      setError(
+                        `${
+                          JSON.parse(err.response.request._response)
+                            .errorMessages[0].errorMessage
+                        }`
+                      );
+                    }
                   } else {
                     setError("Oops, something went wrong!");
                   }

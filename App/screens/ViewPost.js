@@ -104,6 +104,14 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     marginTop: 20,
   },
+  fieldErrorText: {
+    marginTop: 20,
+    marginRight: 20,
+    marginLeft: -5,
+    color: colors.red,
+    fontSize: 15,
+    marginBottom: 10,
+  },
 });
 
 export default ({ navigation, route }) => {
@@ -117,6 +125,7 @@ export default ({ navigation, route }) => {
   const [isPostEditing, setIsPostEditing] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newText, setNewText] = useState("");
+  const [fieldErrors, setFieldErrors] = useState(null);
 
   // refs
   const scrollRef = useRef();
@@ -124,6 +133,18 @@ export default ({ navigation, route }) => {
   const getDateFromString = (strDate) => {
     const date = new Date(strDate);
     return new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+  };
+
+  const getFieldError = (fieldName) => {
+    if (fieldErrors === null) {
+      return null;
+    }
+    const errors = fieldErrors?.filter((fe) => fe.fieldName === fieldName);
+    return errors.length !== 0 ? errors[0].errorMessage : null;
+  };
+
+  const getFieldErrorStyle = (fieldName) => {
+    return getFieldError(fieldName) !== null ? styles.fieldErrorText : null;
   };
 
   const loadData = useCallback(async () => {
@@ -368,6 +389,7 @@ export default ({ navigation, route }) => {
                         return;
                       }
                       setIsReqLoading(true);
+                      setFieldErrors(null);
 
                       PostService.updatePostById(currentPost?.id, {
                         title: newTitle,
@@ -380,10 +402,17 @@ export default ({ navigation, route }) => {
                         .catch((err) => {
                           let alertMessage = "Oops, something went wrong!";
                           if (err?.response?.request?._response) {
-                            alertMessage = `${
-                              JSON.parse(err.response.request._response)
-                                .errorMessages[0].errorMessage
-                            }`;
+                            const errorMessages = JSON.parse(
+                              err.response.request._response
+                            ).errorMessages;
+                            if (errorMessages[0].fieldName !== null) {
+                              setFieldErrors(
+                                JSON.parse(err.response.request._response)
+                                  .errorMessages
+                              );
+                              return;
+                            }
+                            alertMessage = `${errorMessages[0].errorMessage}`;
                           }
                           Alert.alert(
                             "Could not update this post!",
@@ -410,6 +439,7 @@ export default ({ navigation, route }) => {
                   <TouchableOpacity
                     activeOpacity={0.7}
                     onPress={() => {
+                      setFieldErrors(null);
                       setIsPostEditing(false);
                     }}
                   >
@@ -428,6 +458,8 @@ export default ({ navigation, route }) => {
                   }}
                 >
                   <Input
+                    errorMessage={getFieldError("title")}
+                    errorStyle={getFieldErrorStyle("title")}
                     inputContainerStyle={{
                       marginBottom: -15,
                       marginHorizontal: -10,
@@ -438,6 +470,8 @@ export default ({ navigation, route }) => {
                 </View>
 
                 <Input
+                  errorMessage={getFieldError("text")}
+                  errorStyle={getFieldErrorStyle("text")}
                   multiline
                   maxLength={600}
                   inputContainerStyle={{
@@ -461,6 +495,9 @@ export default ({ navigation, route }) => {
                   setIsReqLoading={setIsReqLoading}
                   setComments={setComments}
                   comment={comment}
+                  onProfilePicturePress={() => {
+                    navigation.push("Profile", { userId: comment.user?.id });
+                  }}
                   onDelete={async () => {
                     Alert.alert(
                       "Do you really want to remove this comment?",
@@ -548,16 +585,12 @@ export default ({ navigation, route }) => {
                           .errorMessages[0].errorMessage
                       }`;
                     }
-                    Alert.alert(
-                      "Could not create this comment!",
-                      alertMessage,
-                      [
-                        {
-                          text: "Ok",
-                          style: "cancel",
-                        },
-                      ]
-                    );
+                    Alert.alert("Could not add this comment!", alertMessage, [
+                      {
+                        text: "Ok",
+                        style: "cancel",
+                      },
+                    ]);
                   })
                   .finally(() => setIsReqLoading(false));
               }}

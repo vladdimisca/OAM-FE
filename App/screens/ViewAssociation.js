@@ -153,6 +153,7 @@ export default ({ route, navigation }) => {
           <ProfileItem
             leftIcon={<Text style={styles.addressText}>Iban:</Text>}
             text={currentAssociation.iban}
+            customFontSize={17}
           />
 
           <ItemSeparator />

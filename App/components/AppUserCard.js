@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export const AppUserCard = ({ user, onPress, onBan }) => {
+export const AppUserCard = ({ user, onPress, onBan, onRemoveBan }) => {
   return (
     <View style={styles.card}>
       <TouchableOpacity
@@ -96,30 +96,34 @@ export const AppUserCard = ({ user, onPress, onBan }) => {
         </Text>
       </View>
 
-      <Menu>
-        <MenuTrigger>
-          <Entypo
-            size={34}
-            name="menu"
-            color={colors.border}
-            style={{ marginRight: 8 }}
-          />
-        </MenuTrigger>
+      {user.role !== "ADMIN" && (
+        <Menu>
+          <MenuTrigger>
+            <Entypo
+              size={34}
+              name="menu"
+              color={colors.border}
+              style={{ marginRight: 8 }}
+            />
+          </MenuTrigger>
 
-        <MenuOptions>
-          <TouchableOpacity activeOpacity={0.7}>
-            <MenuOption onSelect={onBan}>
+          <MenuOptions>
+            <TouchableOpacity activeOpacity={0.7}>
               {user?.isBanned ? (
-                <Text style={{ ...styles.menuText, color: colors.green }}>
-                  Remove ban
-                </Text>
+                <MenuOption onSelect={onRemoveBan}>
+                  <Text style={{ ...styles.menuText, color: colors.green }}>
+                    Remove ban
+                  </Text>
+                </MenuOption>
               ) : (
-                <Text style={styles.menuText}>Ban</Text>
+                <MenuOption onSelect={onBan}>
+                  <Text style={styles.menuText}>Ban</Text>
+                </MenuOption>
               )}
-            </MenuOption>
-          </TouchableOpacity>
-        </MenuOptions>
-      </Menu>
+            </TouchableOpacity>
+          </MenuOptions>
+        </Menu>
+      )}
     </View>
   );
 };

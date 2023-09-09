@@ -37,18 +37,37 @@ const styles = StyleSheet.create({
     fontSize: 14,
     alignSelf: "center",
   },
+  fieldErrorText: {
+    marginHorizontal: 20,
+    color: colors.red,
+    fontSize: 15,
+    marginBottom: 17,
+  },
 });
 
 export default ({ navigation, route }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isReqLoading, setIsReqLoading] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState(null);
 
   const [apartmentDetails, setApartmentDetails] = useState({
     number: "",
     numberOfPersons: "",
     surface: "",
   });
+
+  const getFieldError = (fieldName) => {
+    if (fieldErrors === null) {
+      return null;
+    }
+    const errors = fieldErrors?.filter((fe) => fe.fieldName === fieldName);
+    return errors.length !== 0 ? errors[0].errorMessage : null;
+  };
+
+  const getFieldErrorStyle = (fieldName) => {
+    return getFieldError(fieldName) !== null ? styles.fieldErrorText : null;
+  };
 
   useEffect(() => {
     (async () => {
@@ -89,6 +108,8 @@ export default ({ navigation, route }) => {
       <SafeAreaView style={{ paddingBottom: 15 }}>
         <ScrollView>
           <Input
+            errorMessage={getFieldError("number")}
+            errorStyle={getFieldErrorStyle("number")}
             label="Number"
             containerStyle={{ marginTop: 20 }}
             labelStyle={styles.labelStyle}
@@ -103,6 +124,8 @@ export default ({ navigation, route }) => {
           />
 
           <Input
+            errorMessage={getFieldError("numberOfPersons")}
+            errorStyle={getFieldErrorStyle("numberOfPersons")}
             label="Number of persons"
             keyboardType="numeric"
             labelStyle={styles.labelStyle}
@@ -117,6 +140,8 @@ export default ({ navigation, route }) => {
           />
 
           <Input
+            errorMessage={getFieldError("surface")}
+            errorStyle={getFieldErrorStyle("surface")}
             label="Surface (㎡)"
             keyboardType="numeric"
             labelStyle={styles.labelStyle}
@@ -141,7 +166,9 @@ export default ({ navigation, route }) => {
                 return;
               }
               setError("");
+              setFieldErrors(null);
               setIsReqLoading(true);
+
               const apartmentPayload = {
                 ...apartmentDetails,
                 associationId: apartmentDetails.association.id,
@@ -182,12 +209,21 @@ export default ({ navigation, route }) => {
                 })
                 .catch((err) => {
                   if (err?.response?.request?._response) {
-                    setError(
-                      `${
-                        JSON.parse(err.response.request._response)
-                          .errorMessages[0].errorMessage
-                      }`
-                    );
+                    const errorMessages = JSON.parse(
+                      err.response.request._response
+                    ).errorMessages;
+                    if (errorMessages[0].fieldName !== null) {
+                      setFieldErrors(
+                        JSON.parse(err.response.request._response).errorMessages
+                      );
+                    } else {
+                      setError(
+                        `${
+                          JSON.parse(err.response.request._response)
+                            .errorMessages[0].errorMessage
+                        }`
+                      );
+                    }
                   } else {
                     setError("Oops, something went wrong!");
                   }

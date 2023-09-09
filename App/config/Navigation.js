@@ -52,6 +52,8 @@ import Posts from "../screens/Posts";
 import ViewPost from "../screens/ViewPost";
 import CreatePost from "../screens/CreatePost";
 import AddAdmin from "../screens/AddAdmin";
+import Users from "../screens/Users";
+import Statistics from "../screens/Statistics";
 
 const emptyHeaderOptions = {
   title: null,
@@ -383,6 +385,26 @@ const PostsStackScreen = () => (
         title: "Create a new post",
       }}
     />
+    <PostsStack.Screen
+      name="Profile"
+      component={Profile}
+      options={{ headerShown: false }}
+    />
+    <PostsStack.Screen
+      name="Settings"
+      component={Settings}
+      options={headerOptions}
+    />
+    <PostsStack.Screen
+      name="ChangePassword"
+      component={ChangePassword}
+      options={emptyHeaderOptions}
+    />
+    <PostsStack.Screen
+      name="DeleteAccount"
+      component={DeleteAccount}
+      options={emptyHeaderOptions}
+    />
   </PostsStack.Navigator>
 );
 
@@ -468,6 +490,113 @@ const TabsScreen = () => {
   );
 };
 
+const AdminProfileStack = createStackNavigator();
+const AdminProfileStackScreen = () => (
+  <AdminProfileStack.Navigator initialRouteName="Profile">
+    <AdminProfileStack.Screen
+      name="Profile"
+      component={Profile}
+      options={{ headerShown: false }}
+    />
+    <AdminProfileStack.Screen
+      name="Settings"
+      component={Settings}
+      options={headerOptions}
+    />
+    <AdminProfileStack.Screen
+      name="ChangePassword"
+      component={ChangePassword}
+      options={emptyHeaderOptions}
+    />
+    <AdminProfileStack.Screen
+      name="DeleteAccount"
+      component={DeleteAccount}
+      options={emptyHeaderOptions}
+    />
+  </AdminProfileStack.Navigator>
+);
+
+const StatisticsStack = createStackNavigator();
+const StatisticsStackScreen = () => (
+  <StatisticsStack.Navigator initialRouteName="Stats">
+    <StatisticsStack.Screen
+      name="Stats"
+      component={Statistics}
+      options={{ ...headerOptions, title: "Statistics" }}
+    />
+  </StatisticsStack.Navigator>
+);
+
+const UsersStack = createStackNavigator();
+const UsersStackScreen = () => (
+  <UsersStack.Navigator initialRouteName="AllUsers">
+    <UsersStack.Screen
+      name="AllUsers"
+      component={Users}
+      options={{ ...headerOptions, title: "Users" }}
+    />
+    <UsersStack.Screen
+      name="Profile"
+      component={Profile}
+      options={{ headerShown: false }}
+    />
+    <UsersStack.Screen
+      name="Settings"
+      component={Settings}
+      options={headerOptions}
+    />
+    <UsersStack.Screen
+      name="ChangePassword"
+      component={ChangePassword}
+      options={emptyHeaderOptions}
+    />
+    <UsersStack.Screen
+      name="DeleteAccount"
+      component={DeleteAccount}
+      options={emptyHeaderOptions}
+    />
+  </UsersStack.Navigator>
+);
+
+const AdminTabs = createBottomTabNavigator();
+const AdminTabsScreen = () => {
+  return (
+    <AdminTabs.Navigator screenOptions={screenOptions}>
+      <AdminTabs.Screen
+        name="Users"
+        component={UsersStackScreen}
+        options={{
+          tabBarIcon: (props) => (
+            <FontAwesome5 name="users" size={props.size} color={props.color} />
+          ),
+        }}
+      />
+      <AdminTabs.Screen
+        name="Statistics"
+        component={StatisticsStackScreen}
+        options={{
+          tabBarIcon: (props) => (
+            <Ionicons
+              name="stats-chart"
+              size={props.size}
+              color={props.color}
+            />
+          ),
+        }}
+      />
+      <AdminTabs.Screen
+        name="My Profile"
+        component={AdminProfileStackScreen}
+        options={{
+          tabBarIcon: (props) => (
+            <Ionicons name="md-person" size={props.size} color={props.color} />
+          ),
+        }}
+      />
+    </AdminTabs.Navigator>
+  );
+};
+
 const MainStack = createStackNavigator();
 const MainStackScreen = () => (
   <MainStack.Navigator initialRouteName="Authentication">
@@ -479,6 +608,11 @@ const MainStackScreen = () => (
     <MainStack.Screen
       name="App"
       component={TabsScreen}
+      options={{ headerShown: false }}
+    />
+    <MainStack.Screen
+      name="Admin"
+      component={AdminTabsScreen}
       options={{ headerShown: false }}
     />
   </MainStack.Navigator>

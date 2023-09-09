@@ -81,6 +81,12 @@ const styles = StyleSheet.create({
     color: colors.lightBlue,
     marginVertical: 15,
   },
+  fieldErrorText: {
+    marginHorizontal: 20,
+    color: colors.red,
+    fontSize: 15,
+    marginBottom: 17,
+  },
 });
 
 export default ({ navigation }) => {
@@ -90,6 +96,19 @@ export default ({ navigation }) => {
   const [user, setUser] = useState(null);
   const [countryCode, setCountryCode] = useState("RO");
   const [profileUpdateError, setProfileUpdateError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState(null);
+
+  const getFieldError = (fieldName) => {
+    if (fieldErrors === null) {
+      return null;
+    }
+    const errors = fieldErrors?.filter((fe) => fe.fieldName === fieldName);
+    return errors.length !== 0 ? errors[0].errorMessage : null;
+  };
+
+  const getFieldErrorStyle = (fieldName) => {
+    return getFieldError(fieldName) !== null ? styles.fieldErrorText : null;
+  };
 
   const fetchData = useCallback(async () => {
     const { userId } = await UserStorage.retrieveUserIdAndToken();
@@ -152,6 +171,8 @@ export default ({ navigation }) => {
       return;
     }
     setIsLoading(true);
+    setFieldErrors(null);
+    setProfileUpdateError("");
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -168,14 +189,38 @@ export default ({ navigation }) => {
     const { userId } = await UserStorage.retrieveUserIdAndToken();
 
     await UserService.updateProfilePictureById(userId, result.assets[0])
-      .then(() => {
-        redirectToProfile();
+      .then(redirectToProfile)
+      .catch((err) => {
+        if (err?.response?.request?._response) {
+          const errorMessages = JSON.parse(
+            err.response.request._response
+          ).errorMessages;
+          if (errorMessages[0].fieldName !== null) {
+            setFieldErrors(
+              JSON.parse(err.response.request._response).errorMessages
+            );
+          } else {
+            setProfileUpdateError(
+              `${
+                JSON.parse(err.response.request._response).errorMessages[0]
+                  .errorMessage
+              }`
+            );
+          }
+        } else {
+          setProfileUpdateError("Oops, something went wrong!");
+        }
       })
       .finally(() => setIsLoading(false));
   };
 
   const updateUser = async () => {
+    if (isLoading) {
+      return;
+    }
     setIsLoading(true);
+    setFieldErrors(null);
+    setProfileUpdateError("");
 
     const { userId } = await UserStorage.retrieveUserIdAndToken();
 
@@ -186,12 +231,21 @@ export default ({ navigation }) => {
       })
       .catch((err) => {
         if (err?.response?.request?._response) {
-          setProfileUpdateError(
-            `${
-              JSON.parse(err.response.request._response).errorMessages[0]
-                .errorMessage
-            }`
-          );
+          const errorMessages = JSON.parse(
+            err.response.request._response
+          ).errorMessages;
+          if (errorMessages[0].fieldName !== null) {
+            setFieldErrors(
+              JSON.parse(err.response.request._response).errorMessages
+            );
+          } else {
+            setProfileUpdateError(
+              `${
+                JSON.parse(err.response.request._response).errorMessages[0]
+                  .errorMessage
+              }`
+            );
+          }
         } else {
           setProfileUpdateError("Oops, something went wrong!");
         }
@@ -277,6 +331,8 @@ export default ({ navigation }) => {
             </View>
 
             <Input
+              errorMessage={getFieldError("firstName")}
+              errorStyle={getFieldErrorStyle("firstName")}
               leftIcon={
                 <Icon name="user" size={24} color={colors.darkBorder} />
               }
@@ -293,6 +349,8 @@ export default ({ navigation }) => {
             />
 
             <Input
+              errorMessage={getFieldError("lastName")}
+              errorStyle={getFieldErrorStyle("lastName")}
               leftIcon={
                 <Icon name="user" size={24} color={colors.darkBorder} />
               }
@@ -309,6 +367,8 @@ export default ({ navigation }) => {
             />
 
             <Input
+              errorMessage={getFieldError("description")}
+              errorStyle={getFieldErrorStyle("description")}
               leftIcon={
                 // eslint-disable-next-line react/jsx-wrap-multilines
                 <Feather
@@ -332,6 +392,8 @@ export default ({ navigation }) => {
             />
 
             <Input
+              errorMessage={getFieldError("email")}
+              errorStyle={getFieldErrorStyle("email")}
               autoCapitalize="none"
               leftIcon={
                 <Fontisto name="email" size={24} color={colors.darkBorder} />
@@ -349,6 +411,8 @@ export default ({ navigation }) => {
             />
 
             <Input
+              errorMessage={getFieldError("phoneNumber")}
+              errorStyle={getFieldErrorStyle("phoneNumber")}
               autoCapitalize="none"
               leftIcon={
                 // eslint-disable-next-line react/jsx-wrap-multilines

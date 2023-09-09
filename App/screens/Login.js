@@ -80,7 +80,8 @@ export default ({ navigation }) => {
     try {
       const { userId, token } = await UserService.login(email, password);
 
-      await UserStorage.saveUserIdAndToken(userId, token).then(() => {
+      await UserStorage.saveUserIdAndToken(userId, token);
+      await UserService.getUserById(userId).then((user) => {
         setIsLoading(false);
 
         navigation.dispatch(
@@ -89,7 +90,7 @@ export default ({ navigation }) => {
             key: null,
             routes: [
               {
-                name: userId === "ADMIN" ? "Admin" : "App",
+                name: user.role === "ADMIN" ? "Admin" : "App",
                 state: {
                   routes: [
                     {
@@ -105,7 +106,11 @@ export default ({ navigation }) => {
       });
     } catch (err) {
       if (err?.response?.status === 403) {
-        setError(`The email and/or password is invalid!`);
+        if (err.response.data === "") {
+          setError(`The email and/or password is invalid!`);
+        } else {
+          setError(err.response.data);
+        }
       } else {
         setError("Oops, something went wrong!");
       }

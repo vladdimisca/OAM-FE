@@ -25,6 +25,10 @@ const getUserById = async (userId) => {
     .then((response) => response.data);
 };
 
+const getAllUsers = async () => {
+  return axiosInstance.get(`/users`).then((response) => response.data);
+};
+
 const updateUserById = async (userId, user) => {
   return axiosInstance
     .put(`/users/${userId}`, user)
@@ -68,13 +72,24 @@ const recoverAccount = async (email) => {
     .then((response) => response.data);
 };
 
+const banUserById = async (userId) => {
+  return axiosInstance.post(`/users/${userId}/ban`);
+};
+
+const removeBanById = async (userId) => {
+  return axiosInstance.delete(`/users/${userId}/ban`);
+};
+
 export const UserService = {
   register,
   login,
   getUserById,
+  getAllUsers,
   updateUserById,
   updateProfilePictureById,
   changePassword,
   deleteAccount,
   recoverAccount,
+  banUserById,
+  removeBanById,
 };

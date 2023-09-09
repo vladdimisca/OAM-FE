@@ -4,6 +4,7 @@ import {
   StyleSheet,
   ScrollView,
   RefreshControl,
+  Alert,
 } from "react-native";
 import { DotIndicator } from "react-native-indicators";
 import Spinner from "react-native-loading-spinner-overlay";
@@ -39,7 +40,8 @@ export default ({ navigation }) => {
     if (overlay) {
       setIsLoading(true);
     }
-
+    setSearchText("");
+    setDisplayedUsers([]);
     UserService.getAllUsers()
       .then(setUsers)
       .finally(() => setIsLoading(false));
@@ -113,7 +115,86 @@ export default ({ navigation }) => {
               key={user.id}
               user={user}
               onPress={() => navigation.push("Profile", { userId: user.id })}
-              onBan={() => {}}
+              onBan={() => {
+                Alert.alert(
+                  "Do you really want to ban this user?",
+                  "This action can be reverted later!",
+                  [
+                    {
+                      text: "Ban",
+                      onPress: async () => {
+                        setIsLoading(true);
+                        UserService.banUserById(user.id)
+                          .then(fetchUsers)
+                          .catch((err) => {
+                            let alertMessage = "Oops, something went wrong!";
+                            if (err?.response?.request?._response) {
+                              alertMessage = `${
+                                JSON.parse(err.response.request._response)
+                                  .errorMessages[0].errorMessage
+                              }`;
+                            }
+                            Alert.alert(
+                              "Could not ban this user!",
+                              alertMessage,
+                              [
+                                {
+                                  text: "Ok",
+                                  style: "cancel",
+                                },
+                              ]
+                            );
+                          })
+                          .finally(() => setIsLoading(false));
+                      },
+                    },
+                    {
+                      text: "Cancel",
+                      style: "cancel",
+                    },
+                  ]
+                );
+              }}
+              onRemoveBan={() => {
+                Alert.alert(
+                  "Do you really want to remove the ban for user?",
+                  "This action can be reverted later!",
+                  [
+                    {
+                      text: "Remove ban",
+                      onPress: async () => {
+                        setIsLoading(true);
+                        UserService.removeBanById(user.id)
+                          .then(fetchUsers)
+                          .catch((err) => {
+                            let alertMessage = "Oops, something went wrong!";
+                            if (err?.response?.request?._response) {
+                              alertMessage = `${
+                                JSON.parse(err.response.request._response)
+                                  .errorMessages[0].errorMessage
+                              }`;
+                            }
+                            Alert.alert(
+                              "Could not remove the ban for this user!",
+                              alertMessage,
+                              [
+                                {
+                                  text: "Ok",
+                                  style: "cancel",
+                                },
+                              ]
+                            );
+                          })
+                          .finally(() => setIsLoading(false));
+                      },
+                    },
+                    {
+                      text: "Cancel",
+                      style: "cancel",
+                    },
+                  ]
+                );
+              }}
             />
           );
         })}

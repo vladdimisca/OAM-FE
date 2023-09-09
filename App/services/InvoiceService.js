@@ -33,9 +33,16 @@ const deleteInvoiceById = async (invoiceId) => {
   return axiosInstance.delete(`/invoices/${invoiceId}`);
 };
 
+const getStatistics = async () => {
+  return axiosInstance
+    .get(`/invoices/statistics`)
+    .then((response) => response.data);
+};
+
 export const InvoiceService = {
   createInvoice,
   getInvoiceById,
   getInvoices,
   deleteInvoiceById,
+  getStatistics,
 };

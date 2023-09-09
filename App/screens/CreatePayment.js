@@ -97,15 +97,16 @@ export default ({ navigation }) => {
         setCurrentUser(user)
       );
 
-      await ApartmentService.getApartments().then((fetchedApartments) =>
-        setApartments(
-          fetchedApartments.map((a) => {
-            return {
-              label: `Ap. ${a.number} - Str. ${a.association?.street}, no. ${a.association?.number}, bl. ${a.association?.block}, ${a.association?.locality}, ${a.association?.country}`,
-              value: a.id,
-            };
-          })
-        )
+      await ApartmentService.getApartments(null, true).then(
+        (fetchedApartments) =>
+          setApartments(
+            fetchedApartments.map((a) => {
+              return {
+                label: `Ap. ${a.number} - Str. ${a.association?.street}, no. ${a.association?.number}, bl. ${a.association?.block}, ${a.association?.locality}, ${a.association?.country}`,
+                value: a.id,
+              };
+            })
+          )
       );
 
       await InvoiceDistributionService.getInvoiceDistributions()
@@ -331,7 +332,7 @@ export default ({ navigation }) => {
                       alert(response?.error?.localizedMessage);
                       return;
                     }
-                    
+
                     navigation.dispatch(
                       CommonActions.reset({
                         index: 0,

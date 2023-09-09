@@ -124,7 +124,7 @@ export default ({ navigation }) => {
 
   useEffect(() => {
     (() => {
-      ApartmentService.getApartments()
+      ApartmentService.getApartments(null, true)
         .then((fetchedApartments) =>
           setApartments(
             fetchedApartments.map((a) => {

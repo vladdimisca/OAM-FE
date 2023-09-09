@@ -31,6 +31,7 @@ export const ProfileItem = ({
   customTextColor,
   onPress,
   active,
+  customFontSize,
 }) => {
   return (
     <View style={styles.container}>
@@ -41,6 +42,7 @@ export const ProfileItem = ({
           onPress={onPress}
           style={{
             ...styles.textStyle,
+            fontSize: customFontSize || styles.textStyle.fontSize,
             width: rightIcon ? screen.width * 0.6 : screen.width * 0.67,
             color:
               customTextColor !== undefined

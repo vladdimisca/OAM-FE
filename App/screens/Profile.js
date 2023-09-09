@@ -216,13 +216,12 @@ export default ({ navigation, route }) => {
               text={`+${displayedUser.callingCode} ${displayedUser.phoneNumber}`}
             />
 
-            {currentUser.role !== "ADMIN" &&
-              currentUser.id === displayedUser.id && (
-                <GeneralButton
-                  onPress={() => navigation.push("Settings")}
-                  text="Settings"
-                />
-              )}
+            {currentUser.id === displayedUser.id && (
+              <GeneralButton
+                onPress={() => navigation.push("Settings")}
+                text="Settings"
+              />
+            )}
           </ScrollView>
         </SafeAreaView>
       )}

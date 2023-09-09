@@ -8,7 +8,6 @@ import {
   LogBox,
   TouchableOpacity,
   Dimensions,
-  Alert,
 } from "react-native";
 import { DotIndicator } from "react-native-indicators";
 import Spinner from "react-native-loading-spinner-overlay";
@@ -18,7 +17,6 @@ import moment from "moment/moment";
 import * as DocumentPicker from "expo-document-picker";
 import { CommonActions } from "@react-navigation/native";
 import { Avatar, Input } from "react-native-elements";
-import * as Linking from "expo-linking";
 import * as FileSystem from "expo-file-system";
 import * as IntentLauncher from "expo-intent-launcher";
 
@@ -69,6 +67,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 25,
     marginBottom: 20,
   },
+  fieldErrorText: {
+    marginHorizontal: 20,
+    color: colors.red,
+    fontSize: 15,
+    marginBottom: 17,
+  },
 });
 
 export default ({ navigation }) => {
@@ -103,6 +107,7 @@ export default ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isReqLoading, setIsReqLoading] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState(null);
 
   const [associations, setAssociations] = useState([]);
   const [invoice, setInvoice] = useState(null);
@@ -118,9 +123,21 @@ export default ({ navigation }) => {
     associationId: null,
   });
 
+  const getFieldError = (fieldName) => {
+    if (fieldErrors === null) {
+      return null;
+    }
+    const errors = fieldErrors?.filter((fe) => fe.fieldName === fieldName);
+    return errors.length !== 0 ? errors[0].errorMessage : null;
+  };
+
+  const getFieldErrorStyle = (fieldName) => {
+    return getFieldError(fieldName) !== null ? styles.fieldErrorText : null;
+  };
+
   useEffect(() => {
     (() => {
-      AssociationService.getAssociations()
+      AssociationService.getAssociations("ADMIN")
         .then((fetchedAssociations) =>
           setAssociations(
             fetchedAssociations.map((a) => {
@@ -219,6 +236,8 @@ export default ({ navigation }) => {
           {!isDatePickerActive && (
             <>
               <Input
+                errorMessage={getFieldError("name")}
+                errorStyle={getFieldErrorStyle("name")}
                 label="Name"
                 labelStyle={styles.labelStyle}
                 inputContainerStyle={styles.inputContainerStyle}
@@ -232,6 +251,8 @@ export default ({ navigation }) => {
               />
 
               <Input
+                errorMessage={getFieldError("number")}
+                errorStyle={getFieldErrorStyle("number")}
                 label="Number"
                 labelStyle={styles.labelStyle}
                 keyboardType="numeric"
@@ -246,6 +267,8 @@ export default ({ navigation }) => {
               />
 
               <Input
+                errorMessage={getFieldError("amount")}
+                errorStyle={getFieldErrorStyle("amount")}
                 label="Amount (€)"
                 labelStyle={styles.labelStyle}
                 keyboardType="numeric"
@@ -280,6 +303,17 @@ export default ({ navigation }) => {
                   }
                   rowTextForSelection={(selectedItem) => selectedItem.label}
                 />
+
+                {getFieldError("associationId") !== null && (
+                  <Text
+                    style={{
+                      ...getFieldErrorStyle("associationId"),
+                      marginLeft: 5,
+                    }}
+                  >
+                    {getFieldError("associationId")}
+                  </Text>
+                )}
               </View>
 
               <View style={styles.dropdown}>
@@ -302,6 +336,17 @@ export default ({ navigation }) => {
                   }
                   rowTextForSelection={(selectedItem) => selectedItem.label}
                 />
+
+                {getFieldError("type") !== null && (
+                  <Text
+                    style={{
+                      ...getFieldErrorStyle("type"),
+                      marginLeft: 5,
+                    }}
+                  >
+                    {getFieldError("type")}
+                  </Text>
+                )}
               </View>
 
               <View style={styles.dropdown}>
@@ -331,10 +376,23 @@ export default ({ navigation }) => {
                   }
                   rowTextForSelection={(selectedItem) => selectedItem.label}
                 />
+
+                {getFieldError("method") !== null && (
+                  <Text
+                    style={{
+                      ...getFieldErrorStyle("method"),
+                      marginLeft: 5,
+                    }}
+                  >
+                    {getFieldError("method")}
+                  </Text>
+                )}
               </View>
 
               {invoiceDetails.method === "PER_COUNTER" && (
                 <Input
+                  errorMessage={getFieldError("pricePerIndexUnit")}
+                  errorStyle={getFieldErrorStyle("pricePerIndexUnit")}
                   label="Price per index unit (€)"
                   labelStyle={styles.labelStyle}
                   keyboardType="numeric"
@@ -394,12 +452,31 @@ export default ({ navigation }) => {
                   )
                 }
                 text={invoice?.name || "No document selected"}
+                active={invoice !== null}
                 onPress={async () => {
                   if (invoice !== null) {
+                    if (
+                      !(
+                        await FileSystem.getInfoAsync(
+                          `${FileSystem.cacheDirectory}uploads/`
+                        )
+                      ).exists
+                    ) {
+                      await FileSystem.makeDirectoryAsync(
+                        `${FileSystem.cacheDirectory}uploads/`
+                      );
+                    }
+                    const cacheFilePath = `${
+                      FileSystem.cacheDirectory
+                    }uploads/${new Date().getTime().toString()}`;
+                    await FileSystem.copyAsync({
+                      from: invoice?.uri,
+                      to: cacheFilePath,
+                    });
+
                     const cUri = await FileSystem.getContentUriAsync(
-                      invoice?.uri
+                      cacheFilePath
                     );
-                    console.log(JSON.stringify(cUri));
 
                     await IntentLauncher.startActivityAsync(
                       "android.intent.action.VIEW",
@@ -409,18 +486,6 @@ export default ({ navigation }) => {
                         type: "application/pdf",
                       }
                     );
-                    // Linking.openURL(invoice?.uri).catch((ERR) => {
-                    //   Alert.alert(
-                    //     "Could not open this invoice!",
-                    //     JSON.stringify(ERR),
-                    //     [
-                    //       {
-                    //         text: "Ok",
-                    //         style: "cancel",
-                    //       },
-                    //     ]
-                    //   );
-                    // });
                   }
                 }}
               />
@@ -435,6 +500,7 @@ export default ({ navigation }) => {
                   if (isReqLoading === true) {
                     return;
                   }
+                  setFieldErrors(null);
                   setError("");
                   setIsReqLoading(true);
 
@@ -463,12 +529,22 @@ export default ({ navigation }) => {
                     })
                     .catch((err) => {
                       if (err?.response?.request?._response) {
-                        setError(
-                          `${
+                        const errorMessages = JSON.parse(
+                          err.response.request._response
+                        ).errorMessages;
+                        if (errorMessages[0].fieldName !== null) {
+                          setFieldErrors(
                             JSON.parse(err.response.request._response)
-                              .errorMessages[0].errorMessage
-                          }`
-                        );
+                              .errorMessages
+                          );
+                        } else {
+                          setError(
+                            `${
+                              JSON.parse(err.response.request._response)
+                                .errorMessages[0].errorMessage
+                            }`
+                          );
+                        }
                       } else {
                         setError("Oops, something went wrong!");
                       }

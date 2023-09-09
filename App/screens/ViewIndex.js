@@ -180,81 +180,86 @@ export default ({ route, navigation }) => {
             text={`Str. ${currentIndex.apartment?.association?.street}, no. ${currentIndex.apartment?.association?.number}, bl. ${currentIndex.apartment?.association?.block}, ${currentIndex.apartment?.association?.locality}, ${currentIndex.apartment?.association?.country}`}
           />
 
-          <View
-            style={{
-              flex: 1,
-              flexDirection: "row",
-              marginTop: 5,
-              backgroundColor: colors.white,
-              zIndex: 2,
-            }}
-          >
-            <View style={{ flex: 1, marginHorizontal: 80 }}>
-              <GeneralButton
-                text="Delete"
-                backgroundColor={colors.red}
-                onPress={() => {
-                  Alert.alert(
-                    "Do you really want to remove this index?",
-                    "This action is not reversible!",
-                    [
-                      {
-                        text: "Delete",
-                        onPress: async () => {
-                          setIsLoading(true);
-                          IndexService.deleteIndexById(currentIndex.id)
-                            .then(() => {
-                              navigation.dispatch(
-                                CommonActions.reset({
-                                  index: 0,
-                                  key: null,
-                                  routes: [
-                                    {
-                                      name: "App",
-                                      state: {
-                                        routes: [
-                                          {
-                                            name: "Indexes",
-                                          },
-                                        ],
+          {currentIndex?.apartment?.members
+            ?.map((m) => m.id)
+            .includes(currentUser?.id) && (
+            <View
+              style={{
+                flex: 1,
+                flexDirection: "row",
+                marginTop: 5,
+                backgroundColor: colors.white,
+                zIndex: 2,
+              }}
+            >
+              <View style={{ flex: 1, marginHorizontal: 80 }}>
+                <GeneralButton
+                  text="Delete"
+                  backgroundColor={colors.red}
+                  onPress={() => {
+                    Alert.alert(
+                      "Do you really want to remove this index?",
+                      "This action is not reversible!",
+                      [
+                        {
+                          text: "Delete",
+                          onPress: async () => {
+                            setIsLoading(true);
+                            IndexService.deleteIndexById(currentIndex.id)
+                              .then(() => {
+                                navigation.dispatch(
+                                  CommonActions.reset({
+                                    index: 0,
+                                    key: null,
+                                    routes: [
+                                      {
+                                        name: "App",
+                                        state: {
+                                          routes: [
+                                            {
+                                              name: "Indexes",
+                                            },
+                                          ],
+                                        },
                                       },
+                                    ],
+                                  })
+                                );
+                              })
+                              .catch((err) => {
+                                let alertMessage =
+                                  "Oops, something went wrong!";
+                                if (err?.response?.request?._response) {
+                                  alertMessage = `${
+                                    JSON.parse(err.response.request._response)
+                                      .errorMessages[0].errorMessage
+                                  }`;
+                                }
+                                Alert.alert(
+                                  "Could not delete this index!",
+                                  alertMessage,
+                                  [
+                                    {
+                                      text: "Ok",
+                                      style: "cancel",
                                     },
-                                  ],
-                                })
-                              );
-                            })
-                            .catch((err) => {
-                              let alertMessage = "Oops, something went wrong!";
-                              if (err?.response?.request?._response) {
-                                alertMessage = `${
-                                  JSON.parse(err.response.request._response)
-                                    .errorMessages[0].errorMessage
-                                }`;
-                              }
-                              Alert.alert(
-                                "Could not delete this index!",
-                                alertMessage,
-                                [
-                                  {
-                                    text: "Ok",
-                                    style: "cancel",
-                                  },
-                                ]
-                              );
-                            })
-                            .finally(() => setIsLoading(false));
+                                  ]
+                                );
+                              })
+                              .finally(() => setIsLoading(false));
+                          },
                         },
-                      },
-                      {
-                        text: "Cancel",
-                        style: "cancel",
-                      },
-                    ]
-                  );
-                }}
-              />
+                        {
+                          text: "Cancel",
+                          style: "cancel",
+                        },
+                      ]
+                    );
+                  }}
+                />
+              </View>
             </View>
-          </View>
+          )}
         </ScrollView>
       </SafeAreaView>
     </View>

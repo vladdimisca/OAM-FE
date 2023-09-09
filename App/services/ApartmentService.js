@@ -18,9 +18,9 @@ const getApartmentById = async (apartmentId) => {
     .then((response) => response.data);
 };
 
-const getApartments = async (associationId) => {
+const getApartments = async (associationId, asMember) => {
   return axiosInstance
-    .get(`/apartments`, { params: { associationId } })
+    .get(`/apartments`, { params: { associationId, asMember } })
     .then((response) => response.data);
 };
 

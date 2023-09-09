@@ -50,41 +50,53 @@ export default ({ navigation, route }) => {
   const [apartments, setApartments] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
 
-  const getApartments = useCallback(async (overlay = true) => {
-    if (overlay) {
-      setIsLoading(true);
-    }
-    const { userId } = await UserStorage.retrieveUserIdAndToken();
-    await UserService.getUserById(userId).then((user) => setCurrentUser(user));
+  const getApartments = useCallback(
+    async (overlay = true) => {
+      if (overlay) {
+        setIsLoading(true);
+      }
+      const { userId } = await UserStorage.retrieveUserIdAndToken();
+      await UserService.getUserById(userId).then((user) =>
+        setCurrentUser(user)
+      );
 
-    await ApartmentService.getApartments(route.params.association.id)
-      .then(setApartments)
-      .finally(() => setIsLoading(false));
-  }, []);
+      await ApartmentService.getApartments(route.params.association.id)
+        .then(setApartments)
+        .finally(() => {
+          if (
+            route.params.association.admins
+              ?.map((admin) => admin.id)
+              .includes(userId)
+          ) {
+            navigation.setOptions({
+              headerRight: () => (
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    navigation.push("CreateApartment", {
+                      association: route.params.association,
+                    });
+                  }}
+                >
+                  <Feather
+                    name="plus-circle"
+                    size={24}
+                    color={colors.midBlue}
+                    style={{ marginRight: 20 }}
+                  />
+                </TouchableOpacity>
+              ),
+            });
+          }
+          setIsLoading(false);
+        });
+    },
+    [route, navigation]
+  );
 
   useEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => {
-            navigation.push("CreateApartment", {
-              association: route.params.association,
-            });
-          }}
-        >
-          <Feather
-            name="plus-circle"
-            size={24}
-            color={colors.midBlue}
-            style={{ marginRight: 20 }}
-          />
-        </TouchableOpacity>
-      ),
-    });
-
     getApartments();
-  }, [navigation, getApartments, route]);
+  }, [getApartments]);
 
   return (
     <View style={styles.container}>

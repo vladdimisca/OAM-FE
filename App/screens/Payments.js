@@ -64,7 +64,7 @@ export default ({ navigation }) => {
       setIsLoading(true);
     }
     const { userId } = await UserStorage.retrieveUserIdAndToken();
-    await UserService.getUserById(userId).then((user) => setCurrentUser(user));
+    await UserService.getUserById(userId).then(setCurrentUser);
 
     await PaymentService.getPayments()
       .then(setPayments)
@@ -184,25 +184,37 @@ export default ({ navigation }) => {
                 text={formatDate(date)}
               />
 
-              {payments.map((payment) => {
-                return (
-                  <PaymentCard
-                    key={payment.id}
-                    payment={payment}
-                    currentUser={currentUser}
-                    onSelect={() => {
-                      navigation.push("ViewPayment", { payment });
-                    }}
-                    onProfilePicturePress={() => {
-                      navigation.push("Profile", {
-                        userId: payment.user?.id,
-                      });
-                    }}
-                  />
-                );
-              })}
+              {payments
+                .filter((p) => {
+                  return (
+                    getYear(date) === getYear(p.date) &&
+                    getMonth(date, "numeric") === getMonth(p.date, "numeric")
+                  );
+                })
+                .map((payment) => {
+                  return (
+                    <PaymentCard
+                      key={payment.id}
+                      payment={payment}
+                      currentUser={currentUser}
+                      onSelect={() => {
+                        navigation.push("ViewPayment", { payment });
+                      }}
+                      onProfilePicturePress={() => {
+                        navigation.push("Profile", {
+                          userId: payment.user?.id,
+                        });
+                      }}
+                    />
+                  );
+                })}
 
-              {payments.length === 0 && (
+              {payments.filter((p) => {
+                return (
+                  getYear(date) === getYear(p.date) &&
+                  getMonth(date, "numeric") === getMonth(p.date, "numeric")
+                );
+              }).length === 0 && (
                 <Text style={styles.emptyListText}>
                   There is no payment to display!
                 </Text>

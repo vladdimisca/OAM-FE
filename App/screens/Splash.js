@@ -36,7 +36,7 @@ export default ({ navigation }) => {
             index: 0,
             routes: [
               {
-                name: "App",
+                name: user.role === "ADMIN" ? "Admin" : "App",
                 state: {
                   routes: [
                     {
